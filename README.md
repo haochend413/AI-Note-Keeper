@@ -6,3 +6,4 @@ Workflow tool
 
 
 Contributor test
+minor
