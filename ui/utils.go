@@ -12,8 +12,9 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
 
-// cursor configs
+// cursor configs.
 
+// This turns on / resets cursor
 func cursorOn(g *gocui.Gui, view *gocui.View) error {
 	g.Cursor = true
 	lines := view.BufferLines()
@@ -36,7 +37,8 @@ func cursorOn(g *gocui.Gui, view *gocui.View) error {
 // 	g.Cursor = false
 // }
 
-// note submit: to database
+// This sends the current Note buffer to noteDB.
+// Resets Buffer.
 func sendNote(g *gocui.Gui, view *gocui.View) error {
 	s := strings.TrimSpace(view.Buffer())
 

@@ -3,3 +3,6 @@ Workflow tool
 
 - Based on Golang
 - CLI with Cobra, TUI with Gocui
+
+
+Contributor test
