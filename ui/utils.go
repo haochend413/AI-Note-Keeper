@@ -1,8 +1,9 @@
 package ui
 
 import (
-	"fmt"
+	"strings"
 
+	"github.com/haochend413/mantis/db"
 	"github.com/jroimartin/gocui"
 )
 
@@ -11,35 +12,42 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
 
-// delete commandInput
-func quitCommandInput(g *gocui.Gui, v *gocui.View) error {
-	v.Clear()
-	err := g.DeleteView("commandInput")
-	if err != nil && err != gocui.ErrUnknownView {
-		return err
+// cursor configs
+
+func cursorOn(g *gocui.Gui, view *gocui.View) error {
+	g.Cursor = true
+	lines := view.BufferLines()
+
+	// // Remove trailing empty lines
+	// for len(lines) > 0 && len(lines[len(lines)-1]) == 0 {
+	// 	lines = lines[:len(lines)-1]
+	// }
+
+	if len(lines) == 0 {
+		return view.SetCursor(0, 0)
 	}
-	globalKeys(g)
-	return nil
+
+	px := len(lines[len(lines)-1])
+	py := len(lines) - 1
+	return view.SetCursor(px, py)
 }
 
-// push up input commandbar, setview
-func setCommandInput(g *gocui.Gui, view *gocui.View) error {
-	maxX, maxY := g.Size()
+// func cursorOff(g *gocui.Gui, view *gocui.View) {
+// 	g.Cursor = false
+// }
 
-	if v, err := g.SetView("commandInput", 20, maxY/2-10, maxX, maxY/2+10); err != nil {
-		if err != gocui.ErrUnknownView {
-			return err
-		}
-		v.Title = "Command Input"
-		v.Editable = true
-		v.Frame = true
-		fmt.Fprintln(v, ":")
-	}
+// note submit: to database
+func sendNote(g *gocui.Gui, view *gocui.View) error {
+	s := strings.TrimSpace(view.Buffer())
 
-	if _, err := g.SetCurrentView("commandInput"); err != nil {
+	if err := db.AddNote(s); err != nil {
 		return err
 	}
-	cmdinputKeys(g)
+
+	//clear note view
+	view.Clear()
+	// reset cursor
+	cursorOn(g, view)
 
 	return nil
 }
