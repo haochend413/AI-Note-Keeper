@@ -7,14 +7,14 @@ import (
 	"gorm.io/gorm"
 )
 
-var noteDB *gorm.DB
+var NoteDB *gorm.DB
 
 func NoteDBInit() {
 	// open notes database
 	var err error
-	noteDB, err = gorm.Open(sqlite.Open("notes.db"), &gorm.Config{})
+	NoteDB, err = gorm.Open(sqlite.Open("notes.db"), &gorm.Config{})
 	if err != nil {
 		log.Panicln(err)
 	}
-	noteDB.AutoMigrate(&Note{})
+	NoteDB.AutoMigrate(&Note{})
 }

@@ -5,7 +5,7 @@ func AddNote(content string) error {
 	//init note struct
 	note := &Note{Content: content}
 	//pass the string to database;
-	result := noteDB.Create(note)
+	result := NoteDB.Create(note)
 	return result.Error
 }
 
