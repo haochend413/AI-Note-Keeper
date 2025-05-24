@@ -40,6 +40,9 @@ func setNoteHistory(g *gocui.Gui, view *gocui.View) error {
 		//also, we should be able to do somthing to the history, not just check, but a way to metitate and reflect. Think!
 
 		//fetch all data from noteDB
+		if _, err := g.SetCurrentView("noteHistory"); err != nil {
+			return err
+		}
 		var history []db.Note
 		result := db.NoteDB.Find(&history)
 
@@ -52,9 +55,7 @@ func setNoteHistory(g *gocui.Gui, view *gocui.View) error {
 			return result.Error
 		}
 	}
-	if _, err := g.SetCurrentView("noteHistory"); err != nil {
-		return err
-	}
+
 	noteHistoryKeys(g)
 
 	return nil

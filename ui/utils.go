@@ -12,26 +12,26 @@ func quit(g *gocui.Gui, v *gocui.View) error {
 	return gocui.ErrQuit
 }
 
-// cursor configs.
+// // cursor configs.
 
-// This turns on / resets cursor
-func cursorOn(g *gocui.Gui, view *gocui.View) error {
-	g.Cursor = true
-	lines := view.BufferLines()
+// // This turns on / resets cursor
+// func cursorOn(g *gocui.Gui, view *gocui.View) error {
+// 	g.Cursor = true
+// 	lines := view.BufferLines()
 
-	// // Remove trailing empty lines
-	// for len(lines) > 0 && len(lines[len(lines)-1]) == 0 {
-	// 	lines = lines[:len(lines)-1]
-	// }
+// 	// // Remove trailing empty lines
+// 	// for len(lines) > 0 && len(lines[len(lines)-1]) == 0 {
+// 	// 	lines = lines[:len(lines)-1]
+// 	// }
 
-	if len(lines) == 0 {
-		return view.SetCursor(0, 0)
-	}
+// 	if len(lines) == 0 {
+// 		return view.SetCursor(0, 0)
+// 	}
 
-	px := len(lines[len(lines)-1])
-	py := len(lines) - 1
-	return view.SetCursor(px, py)
-}
+// 	px := len(lines[len(lines)-1])
+// 	py := len(lines) - 1
+// 	return view.SetCursor(px, py)
+// }
 
 // func cursorOff(g *gocui.Gui, view *gocui.View) {
 // 	g.Cursor = false
@@ -40,6 +40,10 @@ func cursorOn(g *gocui.Gui, view *gocui.View) error {
 // This sends the current Note buffer to noteDB.
 // Resets Buffer.
 func sendNote(g *gocui.Gui, view *gocui.View) error {
+	//check for empty
+	if view.Buffer() == "" {
+		return nil
+	}
 	s := strings.TrimSpace(view.Buffer())
 
 	if err := db.AddNote(s); err != nil {

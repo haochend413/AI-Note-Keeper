@@ -48,6 +48,7 @@ func cmdinputKeys(g *gocui.Gui) {
 	}
 }
 
+// Keybindings for note-history
 func noteHistoryKeys(g *gocui.Gui) {
 	// [ctrl-C] for exit ; Keybinding
 	// g.DeleteKeybindings("")
@@ -55,4 +56,17 @@ func noteHistoryKeys(g *gocui.Gui) {
 	if err := g.SetKeybinding("noteHistory", gocui.KeyCtrlA, gocui.ModNone, quitNoteHistory); err != nil {
 		log.Panicln(err)
 	}
+	if err := g.SetKeybinding("noteHistory", 'h', gocui.ModNone, CursorLeft); err != nil {
+		log.Panicln(err)
+	}
+	if err := g.SetKeybinding("noteHistory", 'l', gocui.ModNone, CursorRight); err != nil {
+		log.Panicln(err)
+	}
+	if err := g.SetKeybinding("noteHistory", 'j', gocui.ModNone, CursorUp); err != nil {
+		log.Panicln(err)
+	}
+	if err := g.SetKeybinding("noteHistory", 'k', gocui.ModNone, CursorDown); err != nil {
+		log.Panicln(err)
+	}
+
 }
