@@ -37,12 +37,17 @@ func setNote(g *gocui.Gui) error {
 		cursorOn(g, v)
 	}
 
+	prev := "none"
+	if g.CurrentView() != nil {
+		prev = g.CurrentView().Name()
+	}
+
 	if _, err := g.SetCurrentView("note"); err != nil {
 		return err
 	}
 
 	//key config
-	noteKeys(g)
+	noteKeys(g, prev)
 
 	return nil
 }

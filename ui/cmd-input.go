@@ -15,9 +15,10 @@ func quitCommandInput(g *gocui.Gui, v *gocui.View) error {
 	if err != nil && err != gocui.ErrUnknownView {
 		return err
 	}
+	prev := g.CurrentView().Name()
 	g.SetCurrentView("note")
 	cursorOn(g, g.CurrentView())
-	noteKeys(g)
+	noteKeys(g, prev)
 	return nil
 }
 
@@ -38,13 +39,16 @@ func setCommandInput(g *gocui.Gui, view *gocui.View) error {
 		cursorOn(g, v)
 
 	}
+
+	prev := g.CurrentView().Name()
+
 	// fmt.Println(g.CurrentView())
 	if _, err := g.SetCurrentView("commandInput"); err != nil {
 		return err
 	}
 	// fmt.Println(g.CurrentView())
 
-	cmdinputKeys(g)
+	cmdinputKeys(g, prev)
 
 	return nil
 }

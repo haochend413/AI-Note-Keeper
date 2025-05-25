@@ -18,10 +18,9 @@ func globalKeys(g *gocui.Gui) {
 }
 
 // Keybindings when focusing on cmdbars
-func cmdinputKeys(g *gocui.Gui) {
+func cmdinputKeys(g *gocui.Gui, prev string) {
 	// [ctrl-C] for exit ; Keybinding
-	// g.DeleteKeybindings("")
-
+	removeBinding(g, prev)
 	if err := g.SetKeybinding("commandInput", gocui.KeyCtrlX, gocui.ModNone, quitCommandInput); err != nil {
 		log.Panicln(err)
 	}
@@ -33,10 +32,10 @@ func cmdinputKeys(g *gocui.Gui) {
 }
 
 // Keybindings for notekeys
-func noteKeys(g *gocui.Gui) {
+func noteKeys(g *gocui.Gui, prev string) {
 	// [ctrl-x] for input bar setup;
 	// g.DeleteKeybindings("")
-
+	removeBinding(g, prev)
 	//pull up command bar
 	if err := g.SetKeybinding("note", gocui.KeyCtrlX, gocui.ModNone, setCommandInput); err != nil {
 		log.Panicln(err)
@@ -54,7 +53,8 @@ func noteKeys(g *gocui.Gui) {
 }
 
 // Keybindings for note-history
-func noteHistoryKeys(g *gocui.Gui) {
+func noteHistoryKeys(g *gocui.Gui, prev string) {
+	removeBinding(g, prev)
 
 	if err := g.SetKeybinding("noteHistory", gocui.KeyCtrlA, gocui.ModNone, quitNoteHistory); err != nil {
 		log.Panicln(err)
@@ -72,4 +72,12 @@ func noteHistoryKeys(g *gocui.Gui) {
 		log.Panicln(err)
 	}
 
+}
+
+func removeBinding(g *gocui.Gui, prev string) {
+	if prev == "none" {
+		return
+	}
+	//else:
+	g.DeleteKeybindings(prev)
 }

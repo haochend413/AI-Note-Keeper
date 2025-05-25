@@ -44,6 +44,9 @@ func sendCmd(g *gocui.Gui, view *gocui.View) error {
 		return nil
 	}
 	command := strings.TrimSpace(view.BufferLines()[0])
+	view.Clear()
+	cursorOn(g, view)
 	cmd.Execute(command)
+
 	return nil
 }
