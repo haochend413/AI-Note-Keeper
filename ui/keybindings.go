@@ -12,7 +12,22 @@ import (
 func globalKeys(g *gocui.Gui) {
 	// [ctrl-C] for exit ; Keybinding
 	// g.DeleteKeybindings("commandInput")
-	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, quit); err != nil {
+	if err := g.SetKeybinding("", gocui.KeyCtrlC, gocui.ModNone, Quit); err != nil {
+		log.Panicln(err)
+	}
+}
+
+// Keybindings when focusing on cmdbars
+func cmdinputKeys(g *gocui.Gui) {
+	// [ctrl-C] for exit ; Keybinding
+	// g.DeleteKeybindings("")
+
+	if err := g.SetKeybinding("commandInput", gocui.KeyCtrlX, gocui.ModNone, quitCommandInput); err != nil {
+		log.Panicln(err)
+	}
+
+	//run cobra command
+	if err := g.SetKeybinding("commandInput", gocui.KeyEnter, gocui.ModNone, sendCmd); err != nil {
 		log.Panicln(err)
 	}
 }
@@ -38,20 +53,8 @@ func noteKeys(g *gocui.Gui) {
 
 }
 
-// Keybindings when focusing on cmdbars
-func cmdinputKeys(g *gocui.Gui) {
-	// [ctrl-C] for exit ; Keybinding
-	// g.DeleteKeybindings("")
-
-	if err := g.SetKeybinding("commandInput", gocui.KeyCtrlX, gocui.ModNone, quitCommandInput); err != nil {
-		log.Panicln(err)
-	}
-}
-
 // Keybindings for note-history
 func noteHistoryKeys(g *gocui.Gui) {
-	// [ctrl-C] for exit ; Keybinding
-	// g.DeleteKeybindings("")
 
 	if err := g.SetKeybinding("noteHistory", gocui.KeyCtrlA, gocui.ModNone, quitNoteHistory); err != nil {
 		log.Panicln(err)

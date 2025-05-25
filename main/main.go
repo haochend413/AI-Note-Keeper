@@ -10,10 +10,12 @@ import (
 )
 
 func main() {
+
+	//init Cobra
+	cmd.Execute("")
 	//init note database
 	db.NoteDBInit()
-	//init Cobra
-	cmd.Execute()
 	//init Gocui
 	ui.UIinit()
+
 }

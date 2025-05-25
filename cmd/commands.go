@@ -1,20 +1,20 @@
 package cmd
 
 import (
+	"github.com/jroimartin/gocui"
 	"github.com/spf13/cobra"
 )
 
-// init command
-// rootCmd represents the base command when called without any subcommands
+//As for my idea now, commands should also be specific to which view is currently open,
+// which should be shown both in color (border highlight) and text (maybe bottom bar)
 
-var rootCmd = &cobra.Command{
-	Use:   "mantis",
-	Short: "Mantis",
-	Long:  "Mantis: Workflow manage tool",
-	// Uncomment the following line if your bare application
-	// has an action associated with it:
-	Run: func(cmd *cobra.Command, args []string) {
-		// ui.UIinit()
-		println("Welcome to Mantis!")
+//global command
+
+var Quit = &cobra.Command{
+	Use:   "quit",
+	Short: "Quit mantis",
+	Long:  "Quit from Mantis",
+	RunE: func(cmd *cobra.Command, args []string) error {
+		return gocui.ErrQuit
 	},
 }
