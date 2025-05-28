@@ -1,11 +1,32 @@
-package ui
+package controllers
 
-import "github.com/jroimartin/gocui"
+import (
+	"github.com/haochend413/mantis/gui/models"
+	"github.com/jroimartin/gocui"
+)
 
-// cursor configs.
+// This defines logic for cursor movements, make control functions;
+
+func CursorMoveMaker(g *gocui.Gui, viewName string) func(d models.Direction) error {
+	return func(d models.Direction) error {
+		v, _ := g.View(viewName)
+		switch d {
+		case models.Up:
+			return cursorUp(v)
+		case models.Down:
+			return cursorDown(v)
+		case models.Left:
+			return cursorLeft(v)
+		case models.Right:
+			return cursorRight(v)
+		default:
+			return nil
+		}
+	}
+}
 
 // This turns on / resets cursor
-func cursorOn(g *gocui.Gui, view *gocui.View) error {
+func CursorOn(g *gocui.Gui, view *gocui.View) error {
 	g.Cursor = true
 	lines := view.BufferLines()
 
@@ -26,7 +47,7 @@ func cursorOn(g *gocui.Gui, view *gocui.View) error {
 // h-j-k-l defines cursor movements;
 //right now: only for ineditable views; editable views need different modes that will be set later.
 
-func CursorUp(g *gocui.Gui, view *gocui.View) error {
+func cursorUp(view *gocui.View) error {
 	//g.Cursor = true should have already been set
 	//move up cursor
 
@@ -42,7 +63,7 @@ func CursorUp(g *gocui.Gui, view *gocui.View) error {
 
 }
 
-func CursorDown(g *gocui.Gui, view *gocui.View) error {
+func cursorDown(view *gocui.View) error {
 	//g.Cursor = true should have already been set
 	//move up cursor
 
@@ -59,7 +80,7 @@ func CursorDown(g *gocui.Gui, view *gocui.View) error {
 
 }
 
-func CursorLeft(g *gocui.Gui, view *gocui.View) error {
+func cursorLeft(view *gocui.View) error {
 	//g.Cursor = true should have already been set
 	//move up cursor
 
@@ -75,7 +96,7 @@ func CursorLeft(g *gocui.Gui, view *gocui.View) error {
 
 }
 
-func CursorRight(g *gocui.Gui, view *gocui.View) error {
+func cursorRight(view *gocui.View) error {
 	//g.Cursor = true should have already been set
 	//move up cursor
 
