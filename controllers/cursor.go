@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/haochend413/mantis/gui/models"
+	"github.com/haochend413/mantis/models"
 	"github.com/jroimartin/gocui"
 )
 

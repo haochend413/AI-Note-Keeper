@@ -16,6 +16,8 @@ type KeyType struct {
 func Parsor(key string) KeyType {
 	//non-rune cases;
 	switch key {
+	case "ct-e":
+		return KeyType{Key: gocui.KeyCtrlE, Valid: true}
 	case "enter":
 		return KeyType{Key: gocui.KeyEnter, Valid: true}
 	case "ct-x":

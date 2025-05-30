@@ -11,5 +11,3 @@ package controllers
 // 		//
 // 	}
 // }
-
-// implicit: view name should be equal to windowname
