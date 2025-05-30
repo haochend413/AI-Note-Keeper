@@ -8,5 +8,5 @@ type KeyBinder struct {
 	ViewName string
 	Key      string
 	Modifier gocui.Modifier
-	Handler  func() error
+	Handler  func(g *gocui.Gui, v *gocui.View) error
 }

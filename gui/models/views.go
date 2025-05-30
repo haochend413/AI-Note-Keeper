@@ -4,7 +4,8 @@ import "github.com/jroimartin/gocui"
 
 // Each Window defines one view
 type Window struct {
-	WindowName string
-	View       *gocui.View
-	OnDisplay  bool
+	Name      string
+	Title     string
+	View      *gocui.View
+	OnDisplay bool
 }
