@@ -1,17 +1,17 @@
 package gui
 
 import (
+	"github.com/haochend413/mantis/controllers"
 	"github.com/jroimartin/gocui"
 )
 
-var FIRSTINITCHECK bool = true
+var FIRST_INIT_CHECK bool = true
 
 // Define layout for all views;
 func (gui *Gui) layout(g *gocui.Gui) error {
 	//init template
-	if FIRSTINITCHECK {
+	if FIRST_INIT_CHECK {
 		gui.windows = gui.CreateWindowTemplates()
-		FIRSTINITCHECK = false
 	}
 
 	//here, only check logic
@@ -35,16 +35,28 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 		//check: init if only first created
 		if err == gocui.ErrUnknownView {
+			//view config
 			v.Title = w.Title
 			w.View = v
-			// Optional: set cursor, wrap, etc.
-			// v.Wrap = true
+			if w.Editable {
+				v.Editable = true
+
+			}
+			if w.Scroll {
+				v.Autoscroll = true
+			}
+			if w.Cursor {
+				controllers.CursorOn(g, v)
+			}
 		}
 
 	}
 
 	//setstartview
-	g.SetCurrentView("note")
+	if FIRST_INIT_CHECK {
+		g.SetCurrentView("note")
+		FIRST_INIT_CHECK = false
+	}
 
 	return nil
 }

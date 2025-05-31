@@ -10,8 +10,11 @@ type Window struct {
 	View      *gocui.View
 	OnDisplay bool
 	//define size
-	X0 int
-	Y0 int
-	X1 int
-	Y1 int
+	X0       int
+	Y0       int
+	X1       int
+	Y1       int
+	Editable bool
+	Scroll   bool
+	Cursor   bool
 }

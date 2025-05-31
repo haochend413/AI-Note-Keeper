@@ -29,7 +29,6 @@ func (gui *Gui) GuiInit() {
 	//
 	// Set layout manager function (called every frame to layout views)
 	gui.g.SetManagerFunc(gui.layout)
-	gui.windows = gui.CreateWindowTemplates()
 
 	//init keybindings
 	if err := gui.InitKeyBindings(); err != nil {
