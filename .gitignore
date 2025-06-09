@@ -1,3 +1,6 @@
+.DS_Store
+
+# well...this is all wrong
 # Logs
 logs
 *.log

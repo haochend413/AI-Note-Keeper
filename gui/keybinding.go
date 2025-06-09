@@ -17,7 +17,6 @@ func (gui *Gui) InitKeyBindings() error {
 				if err := gui.g.SetKeybinding(k.ViewName, s.Rune, k.Modifier, k.Handler); err != nil {
 					return err
 				}
-
 			} else {
 				if err := gui.g.SetKeybinding(k.ViewName, s.Key, k.Modifier, k.Handler); err != nil {
 					return err
@@ -35,7 +34,7 @@ func CreateAllKeybinders(gui *Gui) []*models.KeyBinder {
 			ViewName: "",
 			Key:      "ct-c",
 			Modifier: gocui.ModNone,
-			Handler:  HandleAppQuit,
+			Handler:  gui.HandleAppQuit,
 		},
 		{
 			ViewName: "",
@@ -54,6 +53,54 @@ func CreateAllKeybinders(gui *Gui) []*models.KeyBinder {
 			Key:      "ct-x",
 			Modifier: gocui.ModNone,
 			Handler:  gui.HandleCmdDisplay,
+		},
+		{
+			ViewName: "",
+			Key:      "ct-q",
+			Modifier: gocui.ModNone,
+			Handler:  gui.HandleDataUpdate,
+		},
+		{
+			ViewName: "",
+			Key:      "tab",
+			Modifier: gocui.ModNone,
+			Handler:  gui.HandleViewLoop,
+		},
+		{
+			ViewName: "note",
+			Key:      "ct-s",
+			Modifier: gocui.ModNone,
+			Handler:  gui.HandleSendNote,
+		},
+		{
+			ViewName: "note",
+			Key:      "ct-space",
+			Modifier: gocui.ModNone,
+			Handler:  gui.HandleSwitchLine,
+		},
+		{
+			ViewName: "note-history",
+			Key:      "up",
+			Modifier: gocui.ModNone,
+			Handler:  gui.HandleHistorySelect("up"),
+		},
+		{
+			ViewName: "note-history",
+			Key:      "down",
+			Modifier: gocui.ModNone,
+			Handler:  gui.HandleHistorySelect("down"),
+		},
+		{
+			ViewName: "note-history",
+			Key:      "left",
+			Modifier: gocui.ModNone,
+			Handler:  gui.HandleHistorySelect("left"),
+		},
+		{
+			ViewName: "note-history",
+			Key:      "right",
+			Modifier: gocui.ModNone,
+			Handler:  gui.HandleHistorySelect("right"),
 		},
 	}
 }

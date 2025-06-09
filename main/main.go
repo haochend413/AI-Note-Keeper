@@ -14,7 +14,9 @@ func main() {
 	// db.NoteDBInit()
 	// //init Gocui
 	// ui.UIinit()
-
+	// m := &dbcontroller.DBManager{}
+	// m.InitManager()
+	// defer m.CloseManager()
 	gui.AppInit()
 
 }
