@@ -106,7 +106,8 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	//setstartview
 	if gui.first_init_check {
-		g.SetCurrentView("note-history")
+		g.SetCurrentView("note")
+		g.CurrentView().FrameColor = gocui.ColorGreen
 		gui.first_init_check = false
 	}
 

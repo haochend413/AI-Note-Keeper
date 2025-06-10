@@ -46,7 +46,7 @@ func (gui *Gui) CreateWindowTemplates() []*models.Window {
 			X1:        maxX / 3,
 			Y1:        maxY/5*4 - 1,
 			Scroll:    false,
-			Cursor:    false,
+			Cursor:    true,
 			// Editable:  true,
 		},
 		{

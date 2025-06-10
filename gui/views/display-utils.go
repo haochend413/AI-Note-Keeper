@@ -61,26 +61,13 @@ func UpdateHistoryDisplay(v *gocui.View) error {
 	v.SetOrigin(0, P_ORIGIN_NH)
 	// fmt.Fprintln(os.Stdout, "test1")
 	//cursor
-	cx, _ := v.Cursor()
-	v.SetCursor(cx, P_CURSOR_NH)
+	// cx, _ := v.Cursor()
+	v.SetCursor(0, P_CURSOR_NH)
 
 	// fmt.Fprintln(os.Stdout, "test2")
 	return nil
 	// v.MoveCursor(0, 1)
 	// return nil
-}
-
-// set origin
-func OriginDown(windowHeight int, dataLength int) {
-	if P_ORIGIN_NH < dataLength-windowHeight {
-		P_ORIGIN_NH += 1
-	}
-}
-
-func OriginUp() {
-	if P_ORIGIN_NH > 0 {
-		P_ORIGIN_NH -= 1
-	}
 }
 
 // This will display the info of the note at P_CURSOR_NH on note-details
@@ -92,7 +79,7 @@ func UpdateSelectedNote(g *gocui.Gui, data *models.DB_Data) error {
 		}
 		v.Clear()
 		v.Wrap = true
-		fmt.Fprint(v, data.NoteDBData[P_CURSOR_NH+P_ORIGIN_NH-1].Content)
+		fmt.Fprint(v, data.NoteDBData[P_CURSOR_NH+P_ORIGIN_NH].Content)
 		return nil
 	})
 	return nil

@@ -31,20 +31,21 @@ import (
 // This turns on / resets cursor
 func CursorOn(g *gocui.Gui, view *gocui.View) error {
 	g.Cursor = true
-	lines := view.BufferLines()
+	// lines := view.BufferLines()
 
-	// // Remove trailing empty lines
-	// for len(lines) > 0 && len(lines[len(lines)-1]) == 0 {
-	// 	lines = lines[:len(lines)-1]
+	// // // Remove trailing empty lines
+	// // for len(lines) > 0 && len(lines[len(lines)-1]) == 0 {
+	// // 	lines = lines[:len(lines)-1]
+	// // }
+
+	// if len(lines) == 0 {
+	// 	return view.SetCursor(0, 0)
 	// }
 
-	if len(lines) == 0 {
-		return view.SetCursor(0, 0)
-	}
-
-	px := len(lines[len(lines)-1])
-	py := len(lines) - 1
-	return view.SetCursor(px, py)
+	// px := len(lines[len(lines)-1])
+	// py := len(lines) - 1
+	// return view.SetCursor(px, py)
+	return nil
 }
 
 func CursorOff(g *gocui.Gui, view *gocui.View) error {
