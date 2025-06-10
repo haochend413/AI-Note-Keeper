@@ -168,18 +168,18 @@ Note view
 // Send Note.
 // Update history & detail demo.
 func (gui *Gui) HandleSendNote(g *gocui.Gui, v *gocui.View) error {
-	// // update db data
-	// views.SendNote(gui.windows[0], gui.g, DB_Data)
-	// _, y := gui.windows[1].View.Size()
-	// views.P_ORIGIN_NH = max(0, len(DB_Data.NoteDBData)-y)
+	// update db data
+	views.SendNote(gui.windows[0], gui.g, DB_Data)
+	_, y := gui.windows[1].View.Size()
+	views.P_ORIGIN_NH = max(0, len(DB_Data.NoteDBData)-y)
 
-	// // move cursor to last visible line
-	// views.P_CURSOR_NH = min(len(DB_Data.NoteDBData)-1, y-1)
+	// move cursor to last visible line
+	views.P_CURSOR_NH = min(len(DB_Data.NoteDBData)-1, y-1)
 
-	// views.UpdateHistoryDisplay(gui.windows[1].View)
+	views.UpdateHistoryDisplay(gui.windows[1].View)
 
 	// demo selected note
-	// return views.UpdateSelectedNote(gui.g, DB_Data)
+	return views.UpdateSelectedNote(gui.g, DB_Data)
 	return nil
 }
 
