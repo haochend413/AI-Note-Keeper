@@ -4,8 +4,9 @@ import (
 	"fmt"
 	"strings"
 
+	"github.com/awesome-gocui/gocui"
 	"github.com/haochend413/mantis/controllers"
-	"github.com/jroimartin/gocui"
+	"github.com/haochend413/mantis/gui/views"
 )
 
 // Define layout for all views;
@@ -45,9 +46,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			if w.Editable {
 				v.Editable = true
 			}
-			if w.Scroll {
-				// v.Autoscroll = true
-			}
 			if w.Cursor {
 				controllers.CursorOn(g, v)
 			}
@@ -56,6 +54,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		//view-specific logic here
 		//fetch again
 		if w.Name == "note-history" {
+			// g.Cursor = false
 			nh := w.View
 			nh.Clear()
 			//display history
@@ -92,7 +91,9 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 					}
 				}
 			}
-			// return nil
+			//reset origin & cursor
+			v.SetOrigin(0, views.P_ORIGIN_NH)
+			v.SetCursor(0, views.P_CURSOR_NH)
 		}
 
 		// if w.Name == "note-detail" {
@@ -105,7 +106,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	//setstartview
 	if gui.first_init_check {
-		g.SetCurrentView("note")
+		g.SetCurrentView("note-history")
 		gui.first_init_check = false
 	}
 

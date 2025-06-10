@@ -1,6 +1,6 @@
 package gui
 
-import "github.com/jroimartin/gocui"
+import "github.com/awesome-gocui/gocui"
 
 // Maybe a bad idea;
 func (gui *Gui) G() *gocui.Gui {

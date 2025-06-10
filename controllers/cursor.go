@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"github.com/jroimartin/gocui"
+	"github.com/awesome-gocui/gocui"
 )
 
 // This defines logic for cursor movements, make control functions;
@@ -55,37 +55,74 @@ func CursorOff(g *gocui.Gui, view *gocui.View) error {
 // h-j-k-l defines cursor movements;
 //right now: only for ineditable views; editable views need different modes that will be set later.
 
-func CursorUp(view *gocui.View) error {
-	//g.Cursor = true should have already been set
-	//move up cursor
+// func CursorUp(view *gocui.View) error {
+// 	//g.Cursor = true should have already been set
+// 	//move up cursor
 
-	//current position
-	px, py := view.Cursor()
-	if py != 0 {
-		//get used to the way it handles errors!
-		if err := view.SetCursor(px, py-1); err != nil {
-			return err
-		}
+// 	//current position
+// 	px, py := view.Cursor()
+// 	if py != 0 {
+// 		//get used to the way it handles errors!
+// 		if err := view.SetCursor(px, py-1); err != nil {
+// 			return err
+// 		}
+// 	}
+// 	return nil
+
+// }
+
+// func CursorDown(view *gocui.View) error {
+// 	//g.Cursor = true should have already been set
+// 	//move up cursor
+
+// 	//current position
+// 	px, py := view.Cursor()
+// 	//here, py should not be lower than the last line; -2 : trimmed empty line
+// 	if py != len(view.BufferLines())-2 {
+// 		//get used to the way it handles errors!
+// 		if err := view.SetCursor(px, py+1); err != nil {
+// 			return err
+// 		}
+// 	}
+// 	return nil
+
+// }
+
+func CursorUp(v *gocui.View) error {
+	cx, cy := v.Cursor()
+	ox, oy := v.Origin()
+
+	if cy > 0 {
+		return v.SetCursor(cx, cy-1)
 	}
+	if oy > 0 {
+		return v.SetOrigin(ox, oy-1)
+	}
+	// If cursor at top and origin at 0, do nothing
 	return nil
-
 }
 
-func CursorDown(view *gocui.View) error {
-	//g.Cursor = true should have already been set
-	//move up cursor
+func CursorDown(v *gocui.View) error {
+	cx, cy := v.Cursor()
+	ox, oy := v.Origin()
 
-	//current position
-	px, py := view.Cursor()
-	//here, py should not be lower than the last line; -2 : trimmed empty line
-	if py != len(view.BufferLines())-2 {
-		//get used to the way it handles errors!
-		if err := view.SetCursor(px, py+1); err != nil {
-			return err
+	//two things to note;
+	_, height := v.Size()
+
+	// Need to know total lines in view content to avoid moving beyond content
+	lines := len(v.BufferLines())
+
+	// Only move cursor if it won't go beyond content lines
+	if oy+cy+1 < lines {
+		if cy < height-1 {
+			if err := v.SetCursor(cx, cy+1); err != nil {
+				return v.SetOrigin(ox, oy+1)
+			}
+		} else {
+			return v.SetOrigin(ox, oy+1)
 		}
 	}
 	return nil
-
 }
 
 func CursorLeft(view *gocui.View) error {
@@ -93,6 +130,7 @@ func CursorLeft(view *gocui.View) error {
 	//move up cursor
 
 	//current position
+	// fmt.Fprintln(os.Stdout, "test")
 	px, py := view.Cursor()
 	if px != 0 {
 		//get used to the way it handles errors!
@@ -124,6 +162,7 @@ func CursorRight(view *gocui.View) error {
 			return err
 		}
 	}
+
 	return nil
 
 }

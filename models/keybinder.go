@@ -1,6 +1,6 @@
 package models
 
-import "github.com/jroimartin/gocui"
+import "github.com/awesome-gocui/gocui"
 
 //This defines keybinder
 

@@ -3,8 +3,8 @@ package views
 import (
 	"fmt"
 
+	"github.com/awesome-gocui/gocui"
 	"github.com/haochend413/mantis/models"
-	"github.com/jroimartin/gocui"
 )
 
 var VIEW_SWITCH_HISTORY = []string{""}
@@ -19,7 +19,7 @@ func ToggleWindowDisplay(w *models.Window, g *gocui.Gui) error {
 		VIEW_SWITCH_HISTORY = append(VIEW_SWITCH_HISTORY, g.CurrentView().Name())
 		if w.OnDisplay {
 			// Create/show the view
-			v, err := g.SetView(w.Name, w.X0, w.Y0, w.X1, w.Y1)
+			v, err := g.SetView(w.Name, w.X0, w.Y0, w.X1, w.Y1, 0)
 			if err != nil && err != gocui.ErrUnknownView {
 				return err
 			}
@@ -51,7 +51,7 @@ List Display
 
 // Note History Display
 var P_ORIGIN_NH int // Position of origin (start line inside data)
-var CURRENT_NOTE_INDEX int
+var P_CURSOR_NH int
 
 // Position of cursor (relative to window)
 
@@ -59,9 +59,15 @@ var CURRENT_NOTE_INDEX int
 func UpdateHistoryDisplay(v *gocui.View) error {
 	//display content
 	v.SetOrigin(0, P_ORIGIN_NH)
+	// fmt.Fprintln(os.Stdout, "test1")
 	//cursor
 	cx, _ := v.Cursor()
-	return v.SetCursor(cx, CURRENT_NOTE_INDEX)
+	v.SetCursor(cx, P_CURSOR_NH)
+
+	// fmt.Fprintln(os.Stdout, "test2")
+	return nil
+	// v.MoveCursor(0, 1)
+	// return nil
 }
 
 // set origin
@@ -77,7 +83,7 @@ func OriginUp() {
 	}
 }
 
-// This will display the info of the note at Current_Note_Index on note-details
+// This will display the info of the note at P_CURSOR_NH on note-details
 func UpdateSelectedNote(g *gocui.Gui, data *models.DB_Data) error {
 	g.Update(func(g *gocui.Gui) error {
 		v, err := g.View("note-detail")
@@ -86,23 +92,8 @@ func UpdateSelectedNote(g *gocui.Gui, data *models.DB_Data) error {
 		}
 		v.Clear()
 		v.Wrap = true
-		fmt.Fprint(v, data.NoteDBData[CURRENT_NOTE_INDEX+P_ORIGIN_NH].Content)
+		fmt.Fprint(v, data.NoteDBData[P_CURSOR_NH+P_ORIGIN_NH-1].Content)
 		return nil
 	})
 	return nil
 }
-
-// // Calculate the part of notedb data that is to be displayed inside the note-history view and avoid invalid point
-// func SelectHistoryDisplay(windowHeight int, data *models.DB_Data) (start int, end int) {
-// 	//here to be cautious: just say smaller than
-// 	if len(data.NoteDBData) < windowHeight {
-// 		return 0, len(data.NoteDBData)
-// 	}
-
-// 	//else, we need to check cursor position, which is current note selected
-// 	// we also know that the last line lies at windowHeight - 1;
-// 	// here we need to make sure that origin and cursor pos stay in there desired range
-// 	start = P_ORIGIN_NH + CURRENT_NOTE_INDEX
-// 	end = start + windowHeight
-// 	return start, end
-// }

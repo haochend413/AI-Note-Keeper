@@ -3,9 +3,9 @@ package views
 import (
 	"strings"
 
+	"github.com/awesome-gocui/gocui"
 	"github.com/haochend413/mantis/controllers"
 	"github.com/haochend413/mantis/models"
-	"github.com/jroimartin/gocui"
 )
 
 // Control window display
@@ -36,9 +36,4 @@ func SendNote(w *models.Window, g *gocui.Gui, data *models.DB_Data) error {
 
 /*
 Note-Detail
-*/
-// Note Detail Index
-
-/*
-Note-History
 */

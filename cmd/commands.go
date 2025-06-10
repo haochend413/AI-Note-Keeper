@@ -3,7 +3,7 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/jroimartin/gocui"
+	"github.com/awesome-gocui/gocui"
 	"github.com/spf13/cobra"
 )
 

@@ -1,7 +1,7 @@
 package gui
 
 import (
-	"github.com/jroimartin/gocui"
+	"github.com/awesome-gocui/gocui"
 )
 
 // var GUI *gocui.Gui

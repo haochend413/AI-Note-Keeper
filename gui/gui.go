@@ -3,9 +3,9 @@ package gui
 import (
 	"log"
 
+	"github.com/awesome-gocui/gocui"
 	dbcontroller "github.com/haochend413/mantis/controllers/db_controller"
 	"github.com/haochend413/mantis/models"
-	"github.com/jroimartin/gocui"
 )
 
 // main Gui struct
@@ -21,8 +21,7 @@ type Gui struct {
 // This function inits a new Gui object;
 func (gui *Gui) GuiInit() {
 	// setup the new gui instance
-
-	g, err := gocui.NewGui(gocui.OutputNormal)
+	g, err := gocui.NewGui(gocui.Output256, false)
 	if err != nil {
 		//check startup err
 		log.Panicln(err)

@@ -1,9 +1,9 @@
 package gui
 
 import (
+	"github.com/awesome-gocui/gocui"
 	"github.com/haochend413/mantis/gui/keybindings"
 	"github.com/haochend413/mantis/models"
-	"github.com/jroimartin/gocui"
 )
 
 // This function inits all the keybindings
@@ -73,16 +73,12 @@ func CreateAllKeybinders(gui *Gui) []*models.KeyBinder {
 			Handler:  gui.HandleSendNote,
 		},
 		{
-			ViewName: "note",
-			Key:      "ct-space",
-			Modifier: gocui.ModNone,
-			Handler:  gui.HandleSwitchLine,
-		},
-		{
 			ViewName: "note-history",
 			Key:      "up",
 			Modifier: gocui.ModNone,
 			Handler:  gui.HandleHistorySelect("up"),
+			// Handler:  controllers.CursorUp(),
+
 		},
 		{
 			ViewName: "note-history",

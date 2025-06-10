@@ -1,6 +1,6 @@
 package models
 
-import "github.com/jroimartin/gocui"
+import "github.com/awesome-gocui/gocui"
 
 // Each Window defines one view
 

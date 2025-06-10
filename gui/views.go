@@ -1,8 +1,8 @@
 package gui
 
 import (
+	"github.com/awesome-gocui/gocui"
 	"github.com/haochend413/mantis/models"
-	"github.com/jroimartin/gocui"
 )
 
 // type windowInfoMapping struct {
@@ -45,8 +45,9 @@ func (gui *Gui) CreateWindowTemplates() []*models.Window {
 			Y0:        1,
 			X1:        maxX / 3,
 			Y1:        maxY/5*4 - 1,
-			Scroll:    true,
+			Scroll:    false,
 			Cursor:    false,
+			// Editable:  true,
 		},
 		{
 			//2
@@ -77,7 +78,7 @@ func (gui *Gui) CreateWindowTemplates() []*models.Window {
 func (gui *Gui) prepareView(w *models.Window) (*gocui.View, error) {
 	// arbitrarily giving the view enough size so that we don't get an error, but
 	// it's expected that the view will be given the correct size before being shown
-	return gui.g.SetView(w.Name, w.X0, w.Y0, w.X1, w.Y1)
+	return gui.g.SetView(w.Name, w.X0, w.Y0, w.X1, w.Y1, 0)
 }
 
 // // create windows and include configs

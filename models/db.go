@@ -14,19 +14,20 @@ import (
 
 // structure for db data storage
 type DB_Data struct {
-	NoteDBData []*Note
+	NoteDBData  []*Note
+	TopicDBData []*Topic
 }
 
 // struct for single message
 type Note struct {
+	// use the unique ID as indicator
 	gorm.Model
-	//use the unique ID as indicator
 	Content string
-	// Topics  []*Topic `gorm:"many2many:note_topics;"`
+	Topics  []*Topic `gorm:"many2many:note_topics;"`
 }
 
-// type Topic struct {
-// 	gorm.Model
-// 	Title string
-// 	Notes []*Note `gorm:"many2many:note_topics;"`
-// }
+type Topic struct {
+	gorm.Model
+	Title string
+	Notes []*Note `gorm:"many2many:note_topics;"`
+}
