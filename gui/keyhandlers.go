@@ -159,6 +159,24 @@ func (gui *Gui) HandleHistorySelect(direction string) func(*gocui.Gui, *gocui.Vi
 	}
 }
 
+func (gui *Gui) HandleJumpToEnd() func(*gocui.Gui, *gocui.View) error {
+	return func(g *gocui.Gui, v *gocui.View) error {
+		//jump to end
+		_, height := v.Size()
+		if len(DB_Data.NoteDBData) < height {
+			views.P_CURSOR_NH = len(DB_Data.NoteDBData) - 1
+			views.P_ORIGIN_NH = 0
+			// return nil
+		} else {
+			views.P_CURSOR_NH = height - 1
+			views.P_ORIGIN_NH = len(DB_Data.NoteDBData) - height
+			// return nil
+		}
+		views.UpdateSelectedNote(gui.g, DB_Data)
+		return nil
+	}
+}
+
 /*
 Note view
 */
