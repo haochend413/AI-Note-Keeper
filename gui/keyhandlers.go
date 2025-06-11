@@ -132,18 +132,6 @@ func (gui *Gui) HandleHistorySelect(direction string) func(*gocui.Gui, *gocui.Vi
 			// two things to note;
 			_, height := v.Size()
 			// Need to know total lines in view content to avoid moving beyond content
-			lines := len(DB_Data.NoteDBData)
-
-			//if there is need to move cursor down
-			if views.P_ORIGIN_NH+views.P_CURSOR_NH < lines-1 {
-				if views.P_CURSOR_NH < height-1 {
-					views.P_CURSOR_NH += 1
-				} else {
-					// if cursor is at the bottom, move origin
-					views.P_ORIGIN_NH += 1
-					// views.P_CURSOR_NH += 1
-				}
-			}
 
 			D_Origin := max(0, views.P_CURSOR_NH+5-height)
 			if D_Origin > 0 {
