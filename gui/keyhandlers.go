@@ -1,9 +1,6 @@
 package gui
 
 import (
-	"fmt"
-
-	"github.com/haochend413/mantis/controllers"
 	"github.com/haochend413/mantis/gui/views"
 
 	"github.com/awesome-gocui/gocui"
@@ -60,6 +57,9 @@ func (gui *Gui) HandleViewLoop(g *gocui.Gui, v *gocui.View) error {
 	}
 }
 
+/*
+Note History Display
+*/
 // Move Cursor; Update View Related Values: gui imports views
 func (gui *Gui) HandleHistorySelect(direction string) func(*gocui.Gui, *gocui.View) error {
 	return func(g *gocui.Gui, v *gocui.View) error {
@@ -100,14 +100,71 @@ func (gui *Gui) HandleHistorySelect(direction string) func(*gocui.Gui, *gocui.Vi
 					// views.P_CURSOR_NH += 1
 				}
 			}
-			fmt.Fprint(gui.windows[0].View, "Cursor:", views.P_CURSOR_NH, " Origin:", views.P_ORIGIN_NH, "   ")
 			views.UpdateSelectedNote(gui.g, DB_Data)
 			// return views.UpdateHistoryDisplay(v)
 			return nil
 		case "left":
-			return controllers.CursorLeft(gui.windows[1].View)
+			//move up 5
+			// if  at top, move origin
+
+			//calculate separately
+			D_Origin := min(0, views.P_CURSOR_NH-5)
+			if D_Origin < 0 {
+				//reset cursor
+				views.P_CURSOR_NH = 0
+				//move origin
+				views.P_ORIGIN_NH += D_Origin
+				//check for upper bound
+				if views.P_ORIGIN_NH < 0 {
+					views.P_ORIGIN_NH = 0
+				}
+			} else {
+				//just move cursor
+				views.P_CURSOR_NH -= 5
+			}
+
+			//re-render
+			views.UpdateSelectedNote(gui.g, DB_Data)
+			// return views.UpdateHistoryDisplay(v)
+			return nil
 		case "right":
-			return controllers.CursorRight(gui.windows[1].View)
+			//move down 5
+			// two things to note;
+			_, height := v.Size()
+			// Need to know total lines in view content to avoid moving beyond content
+			lines := len(DB_Data.NoteDBData)
+
+			//if there is need to move cursor down
+			if views.P_ORIGIN_NH+views.P_CURSOR_NH < lines-1 {
+				if views.P_CURSOR_NH < height-1 {
+					views.P_CURSOR_NH += 1
+				} else {
+					// if cursor is at the bottom, move origin
+					views.P_ORIGIN_NH += 1
+					// views.P_CURSOR_NH += 1
+				}
+			}
+
+			D_Origin := max(0, views.P_CURSOR_NH+5-height)
+			if D_Origin > 0 {
+				//reset cursor
+				views.P_CURSOR_NH = height - 1
+				//move origin
+				views.P_ORIGIN_NH += D_Origin
+				//check for upper bound
+				if views.P_ORIGIN_NH > len(DB_Data.NoteDBData)-height {
+					views.P_ORIGIN_NH = len(DB_Data.NoteDBData) - height
+				}
+			} else {
+				//just move cursor
+				views.P_CURSOR_NH += 5
+				if views.P_CURSOR_NH >= height {
+					views.P_CURSOR_NH = height - 1
+				}
+			}
+			views.UpdateSelectedNote(gui.g, DB_Data)
+			// return views.UpdateHistoryDisplay(v)
+			return nil
 		default:
 			return nil
 		}

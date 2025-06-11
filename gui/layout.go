@@ -2,6 +2,7 @@ package gui
 
 import (
 	"fmt"
+	"strconv"
 	"strings"
 
 	"github.com/awesome-gocui/gocui"
@@ -59,37 +60,47 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			nh.Clear()
 			//display history
 			nh.Highlight = true
-			v.SelBgColor = gocui.ColorCyan
-			v.SelFgColor = gocui.ColorBlue
+			v.SelBgColor = gocui.ColorBlue
+			v.SelFgColor = gocui.ColorYellow
 			//here it prints all, and which part gets shown depend on the origin, which we will use to control.
 			for _, note := range DB_Data.NoteDBData {
+				var wordlen = 0
 				timestamp := "\x1b[35m" + note.CreatedAt.Format("06-01-02 15:04") + "\x1b[0m"
-				fmt.Fprint(nh, timestamp)
-				fmt.Fprint(nh, "  ")
-				fmt.Fprint(nh, note.ID)
-				fmt.Fprint(nh, "  ")
+				c1, _ := fmt.Fprint(nh, timestamp+"  "+strconv.FormatUint(uint64(note.ID), 10)+"  ")
 				firstLine := strings.SplitN(note.Content, "\n", 2)[0]
+				wordlen = len(firstLine) + c1
 				var d = false
 				if len(strings.SplitN(note.Content, "\n", 2)) > 1 {
 					d = true
 				}
-
 				if d {
 					if len(firstLine) <= 30 {
 						fmt.Fprint(nh, firstLine)
-						fmt.Fprintln(nh, "...")
+						fmt.Fprint(nh, "...")
+						wordlen += 3 // for the ellipsis
 					} else {
 						fmt.Fprint(nh, firstLine[:30])
-						fmt.Fprintln(nh, "...")
+						fmt.Fprint(nh, "...")
+						wordlen += 3 // for the ellipsis
+
 					}
 				} else {
 					if len(firstLine) <= 30 {
-						fmt.Fprintln(nh, firstLine)
+						fmt.Fprint(nh, firstLine)
 					} else {
 						fmt.Fprint(nh, firstLine[:30])
-						fmt.Fprintln(nh, "...")
+						fmt.Fprint(nh, "...")
+						wordlen += 3 // for the ellipsis
+
 					}
 				}
+				//pad spaces
+				x, _ := nh.Size()
+				pad := x - wordlen + 8 // just to match;
+				if pad > 0 {
+					fmt.Fprint(nh, strings.Repeat(" ", pad))
+				}
+				fmt.Fprintln(nh, " ")
 			}
 			//reset origin & cursor
 			v.SetOrigin(0, views.P_ORIGIN_NH)
@@ -101,7 +112,6 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 		// 	nh.Clear()
 		// 	// fmt.Fprint(os.Stdout, "hihi, \n hihi, \n hihi")
 		// }
-
 	}
 
 	//setstartview
