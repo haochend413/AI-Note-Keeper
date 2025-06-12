@@ -16,6 +16,7 @@ import (
 // 	return result.Error
 // }
 
+// Clear all and then setup again
 func (nd *NoteDB) SyncNoteData(notes []*models.Note) error {
 	//This might be buggy: clear table
 	nd.Db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Note{})

@@ -42,7 +42,8 @@ func Parsor(key string) KeyType {
 		return KeyType{Key: gocui.KeyTab, Valid: true}
 	case "ct-q":
 		return KeyType{Key: gocui.KeyCtrlQ, Valid: true}
-
+	case "delete":
+		return KeyType{Key: gocui.KeyBackspace2, Valid: true}
 	}
 
 	//rune case: length of string is 1

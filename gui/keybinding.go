@@ -104,7 +104,12 @@ func CreateAllKeybinders(gui *Gui) []*models.KeyBinder {
 			Modifier: gocui.ModNone,
 			Handler:  gui.HandleJumpToEnd(),
 			// Handler:  controllers.CursorUp(),
-
+		},
+		{
+			ViewName: "note-history",
+			Key:      "delete",
+			Modifier: gocui.ModNone,
+			Handler:  gui.HandleDeleteNote,
 		},
 	}
 }

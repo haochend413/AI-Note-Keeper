@@ -198,6 +198,11 @@ func (gui *Gui) HandleSendNote(g *gocui.Gui, v *gocui.View) error {
 	return views.UpdateSelectedNote(gui.g, DB_Data)
 }
 
+func (gui *Gui) HandleDeleteNote(g *gocui.Gui, v *gocui.View) error {
+	// update db data
+	return views.DeleteNote(gui.windows[1], gui.g, DB_Data)
+}
+
 // func (gui *Gui) HandleSwitchLine(g *gocui.Gui, v *gocui.View) error {
 // 	// fmt.Fprint(os.Stdout, gui.windows[0].Name)
 // 	v.edi()

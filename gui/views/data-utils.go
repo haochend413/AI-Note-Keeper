@@ -35,5 +35,18 @@ func SendNote(w *models.Window, g *gocui.Gui, data *models.DB_Data) error {
 }
 
 /*
+Note History View
+*/
+// remove the note at the current index: P_CURSOR_NH + P_ORIGIN_NH
+func DeleteNote(w *models.Window, g *gocui.Gui, data *models.DB_Data) error {
+	// note := &models.Note{Content: content}
+	data.NoteDBData = append(data.NoteDBData[:P_CURSOR_NH+P_ORIGIN_NH], data.NoteDBData[P_CURSOR_NH+P_ORIGIN_NH+1:]...)
+	// reset Note view
+	// g.CurrentView().Clear()
+	// controllers.CursorOn(g, g.CurrentView())
+	return nil
+}
+
+/*
 Note-Detail
 */
