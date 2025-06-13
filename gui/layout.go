@@ -63,7 +63,7 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			v.SelBgColor = gocui.ColorBlue
 			v.SelFgColor = gocui.ColorYellow
 			//here it prints all, and which part gets shown depend on the origin, which we will use to control.
-			for _, note := range DB_Data.NoteDBData {
+			for _, note := range DB_Data.NoteData {
 				var wordlen = 0
 				timestamp := "\x1b[35m" + note.CreatedAt.Format("06-01-02 15:04") + "\x1b[0m"
 				c1, _ := fmt.Fprint(nh, timestamp+"  "+strconv.FormatUint(uint64(note.ID), 10)+"  ")
@@ -123,16 +123,3 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 
 	return nil
 }
-
-// // help get the part of history demonstrated in the note-history view
-// func getHistoryDisplay(v *gocui.View) []*models.Note {
-// 	_, maxY := v.Size()
-// 	if len(DB_Data.NoteDBData) < maxY {
-// 		return DB_Data.NoteDBData
-// 	}
-
-// 	//if not, return the last portion;
-// 	front := max(Current_Note_Index-maxY, 0)
-// 	end := min(front+maxY, len(DB_Data.NoteDBData))
-// 	return DB_Data.NoteDBData[front:end]
-// }

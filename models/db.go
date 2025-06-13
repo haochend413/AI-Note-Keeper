@@ -14,8 +14,9 @@ import (
 
 // structure for db data storage
 type DB_Data struct {
-	NoteDBData  []*Note
-	TopicDBData []*Topic
+	NoteData      []*Note
+	TopicData     []*Topic
+	NoteTopicData []*NoteTopic
 }
 
 // struct for single message
@@ -30,4 +31,10 @@ type Topic struct {
 	gorm.Model
 	Title string
 	Notes []*Note `gorm:"many2many:note_topics;"`
+}
+
+// link between noteID and topicID
+type NoteTopic struct {
+	NoteID  uint
+	TopicID uint
 }

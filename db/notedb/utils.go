@@ -17,6 +17,7 @@ import (
 // }
 
 // Clear all and then setup again
+// Need to change that to accept topics
 func (nd *NoteDB) SyncNoteData(notes []*models.Note) error {
 	//This might be buggy: clear table
 	nd.Db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&models.Note{})

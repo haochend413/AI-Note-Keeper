@@ -30,13 +30,14 @@ import (
 // 	return result.Error
 // }
 
+// Init new database
 func DBInit(name string) *gorm.DB {
 	// open notes database
 	n, err := gorm.Open(sqlite.Open(name+".db"), &gorm.Config{})
 	if err != nil {
 		log.Panicln(err)
 	}
-	//assign
+	//assign, which is not yet generalized
 	if err := n.AutoMigrate(&models.Note{}); err != nil {
 		log.Panic(err)
 	}

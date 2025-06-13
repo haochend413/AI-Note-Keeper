@@ -29,7 +29,7 @@ func (m *DBManager) CloseManager() error {
 
 // refresh database data; Run at quit or before specific functions
 func (m *DBManager) RefreshAll(data *models.DB_Data) error {
-	return m.DataBases.NoteDB.SyncNoteData(data.NoteDBData)
+	return m.DataBases.NoteDB.SyncNoteData(data.NoteData)
 }
 
 // fetch database data, run at the Appinit
@@ -38,7 +38,7 @@ func (m *DBManager) FetchAll() *models.DB_Data {
 	result := m.DataBases.NoteDB.Db.Find(&history)
 	if result.Error != nil {
 		// handle error properly (optional)
-		return &models.DB_Data{NoteDBData: []*models.Note{}}
+		return &models.DB_Data{NoteData: []*models.Note{}}
 	}
 
 	//value-pointer conversion
@@ -47,5 +47,5 @@ func (m *DBManager) FetchAll() *models.DB_Data {
 		notePtrs = append(notePtrs, &history[i])
 	}
 
-	return &models.DB_Data{NoteDBData: notePtrs}
+	return &models.DB_Data{NoteData: notePtrs}
 }

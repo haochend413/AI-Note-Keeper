@@ -79,7 +79,7 @@ func UpdateSelectedNote(g *gocui.Gui, data *models.DB_Data) error {
 		}
 		v.Clear()
 		v.Wrap = true
-		fmt.Fprint(v, data.NoteDBData[P_CURSOR_NH+P_ORIGIN_NH].Content)
+		fmt.Fprint(v, data.NoteData[P_CURSOR_NH+P_ORIGIN_NH].Content)
 		return nil
 	})
 	return nil

@@ -27,7 +27,7 @@ func SendNote(w *models.Window, g *gocui.Gui, data *models.DB_Data) error {
 		return nil
 	}
 	note := &models.Note{Content: content}
-	data.NoteDBData = append(data.NoteDBData, note)
+	data.NoteData = append(data.NoteData, note)
 	// reset Note view
 	g.CurrentView().Clear()
 	controllers.CursorOn(g, g.CurrentView())
@@ -39,12 +39,30 @@ Note History View
 */
 // remove the note at the current index: P_CURSOR_NH + P_ORIGIN_NH
 func DeleteNote(w *models.Window, g *gocui.Gui, data *models.DB_Data) error {
-	// note := &models.Note{Content: content}
-	data.NoteDBData = append(data.NoteDBData[:P_CURSOR_NH+P_ORIGIN_NH], data.NoteDBData[P_CURSOR_NH+P_ORIGIN_NH+1:]...)
-	// reset Note view
-	// g.CurrentView().Clear()
-	// controllers.CursorOn(g, g.CurrentView())
+	//check for boundary
+	//if no notes, do nothing
+	_, height := w.View.Size()
+	if len(data.NoteData) == 0 {
+		return nil
+	}
+
+	// delete current note
+	data.NoteData = append(data.NoteData[:P_CURSOR_NH+P_ORIGIN_NH], data.NoteData[P_CURSOR_NH+P_ORIGIN_NH+1:]...)
+
+	//aftter delete, check for valid position, if not valid, return to last valid
+	if P_CURSOR_NH+P_ORIGIN_NH >= len(data.NoteData) {
+		if P_CURSOR_NH == height-1 {
+			//at bottom, move origin up
+			P_ORIGIN_NH = max(0, P_ORIGIN_NH-1)
+		} else {
+			//just move cursor up
+			P_CURSOR_NH = max(0, P_CURSOR_NH-1)
+		}
+		return nil
+	}
+	UpdateSelectedNote(g, data)
 	return nil
+
 }
 
 /*

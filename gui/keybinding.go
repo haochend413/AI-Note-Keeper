@@ -77,8 +77,6 @@ func CreateAllKeybinders(gui *Gui) []*models.KeyBinder {
 			Key:      "up",
 			Modifier: gocui.ModNone,
 			Handler:  gui.HandleHistorySelect("up"),
-			// Handler:  controllers.CursorUp(),
-
 		},
 		{
 			ViewName: "note-history",
@@ -103,7 +101,6 @@ func CreateAllKeybinders(gui *Gui) []*models.KeyBinder {
 			Key:      "e",
 			Modifier: gocui.ModNone,
 			Handler:  gui.HandleJumpToEnd(),
-			// Handler:  controllers.CursorUp(),
 		},
 		{
 			ViewName: "note-history",

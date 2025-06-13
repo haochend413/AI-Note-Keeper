@@ -88,7 +88,7 @@ func (gui *Gui) HandleHistorySelect(direction string) func(*gocui.Gui, *gocui.Vi
 			_, height := v.Size()
 
 			// Need to know total lines in view content to avoid moving beyond content
-			lines := len(DB_Data.NoteDBData)
+			lines := len(DB_Data.NoteData)
 
 			//if there is need to move cursor down
 			if views.P_ORIGIN_NH+views.P_CURSOR_NH < lines-1 {
@@ -132,7 +132,9 @@ func (gui *Gui) HandleHistorySelect(direction string) func(*gocui.Gui, *gocui.Vi
 			// two things to note;
 			_, height := v.Size()
 			// Need to know total lines in view content to avoid moving beyond content
-
+			if len(DB_Data.NoteData) < height {
+				height = len(DB_Data.NoteData)
+			}
 			D_Origin := max(0, views.P_CURSOR_NH+5-height)
 			if D_Origin > 0 {
 				//reset cursor
@@ -140,8 +142,8 @@ func (gui *Gui) HandleHistorySelect(direction string) func(*gocui.Gui, *gocui.Vi
 				//move origin
 				views.P_ORIGIN_NH += D_Origin
 				//check for upper bound
-				if views.P_ORIGIN_NH > len(DB_Data.NoteDBData)-height {
-					views.P_ORIGIN_NH = len(DB_Data.NoteDBData) - height
+				if views.P_ORIGIN_NH > len(DB_Data.NoteData)-height {
+					views.P_ORIGIN_NH = len(DB_Data.NoteData) - height
 				}
 			} else {
 				//just move cursor
@@ -163,13 +165,13 @@ func (gui *Gui) HandleJumpToEnd() func(*gocui.Gui, *gocui.View) error {
 	return func(g *gocui.Gui, v *gocui.View) error {
 		//jump to end
 		_, height := v.Size()
-		if len(DB_Data.NoteDBData) < height {
-			views.P_CURSOR_NH = len(DB_Data.NoteDBData) - 1
+		if len(DB_Data.NoteData) < height {
+			views.P_CURSOR_NH = len(DB_Data.NoteData) - 1
 			views.P_ORIGIN_NH = 0
 			// return nil
 		} else {
 			views.P_CURSOR_NH = height - 1
-			views.P_ORIGIN_NH = len(DB_Data.NoteDBData) - height
+			views.P_ORIGIN_NH = len(DB_Data.NoteData) - height
 			// return nil
 		}
 		views.UpdateSelectedNote(gui.g, DB_Data)
@@ -187,10 +189,10 @@ func (gui *Gui) HandleSendNote(g *gocui.Gui, v *gocui.View) error {
 	// update db data
 	views.SendNote(gui.windows[0], gui.g, DB_Data)
 	_, y := gui.windows[1].View.Size()
-	views.P_ORIGIN_NH = max(0, len(DB_Data.NoteDBData)-y)
+	views.P_ORIGIN_NH = max(0, len(DB_Data.NoteData)-y)
 
 	// move cursor to last visible line
-	views.P_CURSOR_NH = min(len(DB_Data.NoteDBData)-1, y-1)
+	views.P_CURSOR_NH = min(len(DB_Data.NoteData)-1, y-1)
 
 	views.UpdateHistoryDisplay(gui.windows[1].View)
 
