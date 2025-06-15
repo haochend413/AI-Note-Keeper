@@ -1,13 +1,7 @@
-/*
-Copyright © 2025 NAME HERE <EMAIL ADDRESS>
-*/
 package main
 
-import (
-	"github.com/haochend413/mantis/gui"
-)
+import "github.com/haochend413/mantis/cmd"
 
-// Entry point
 func main() {
-	gui.AppInit()
+	cmd.Execute()
 }
