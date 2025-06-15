@@ -13,7 +13,7 @@ import (
 // it starts with nothing
 
 // fetch the current content input of that view;
-func FetchContent(w *models.Window, g *gocui.Gui) string {
+func FetchContent(w *models.Window) string {
 	return strings.TrimSpace(w.View.Buffer())
 }
 
@@ -22,7 +22,7 @@ Note View
 */
 // store current note to DB_Data
 func SendNote(w *models.Window, g *gocui.Gui, data *models.DB_Data) error {
-	content := FetchContent(w, g)
+	content := FetchContent(w)
 	if content == "" {
 		return nil
 	}
@@ -49,8 +49,10 @@ func DeleteNote(w *models.Window, g *gocui.Gui, data *models.DB_Data) error {
 	// delete current note
 	data.NoteData = append(data.NoteData[:P_CURSOR_NH+P_ORIGIN_NH], data.NoteData[P_CURSOR_NH+P_ORIGIN_NH+1:]...)
 
+	//
+
 	//aftter delete, check for valid position, if not valid, return to last valid
-	if P_CURSOR_NH+P_ORIGIN_NH >= len(data.NoteData) {
+	if P_CURSOR_NH+P_ORIGIN_NH <= len(data.NoteData) {
 		if P_CURSOR_NH == height-1 {
 			//at bottom, move origin up
 			P_ORIGIN_NH = max(0, P_ORIGIN_NH-1)
@@ -60,11 +62,20 @@ func DeleteNote(w *models.Window, g *gocui.Gui, data *models.DB_Data) error {
 		}
 		return nil
 	}
+
 	UpdateSelectedNote(g, data)
 	return nil
 
 }
 
-/*
-Note-Detail
-*/
+// /*
+// Topic
+// */
+// //Add a Topic to existing note; First stage, we only accept one topic at note creation, then we enable add more topics, and then while creating note
+// //This happens while there is something inside the note view?
+// func AddTopicToNote(w *models.Window) error {
+// 	topicRaw := FetchContent(w) //get topic content
+// 	//add topic
+// 	topic := &models.Topic{Topic: topicRaw}
+
+// }

@@ -29,7 +29,7 @@ type Note struct {
 
 type Topic struct {
 	gorm.Model
-	Title string
+	Topic string
 	Notes []*Note `gorm:"many2many:note_topics;"`
 }
 

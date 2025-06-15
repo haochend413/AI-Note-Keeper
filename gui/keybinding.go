@@ -64,7 +64,7 @@ func CreateAllKeybinders(gui *Gui) []*models.KeyBinder {
 			ViewName: "",
 			Key:      "tab",
 			Modifier: gocui.ModNone,
-			Handler:  gui.HandleViewLoop,
+			Handler:  gui.HandleInputLoop,
 		},
 		{
 			ViewName: "note",

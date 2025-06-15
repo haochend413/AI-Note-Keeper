@@ -65,38 +65,35 @@ func (gui *Gui) layout(g *gocui.Gui) error {
 			//here it prints all, and which part gets shown depend on the origin, which we will use to control.
 			for _, note := range DB_Data.NoteData {
 				var wordlen = 0
-				timestamp := "\x1b[35m" + note.CreatedAt.Format("06-01-02 15:04") + "\x1b[0m"
-				c1, _ := fmt.Fprint(nh, timestamp+"  "+strconv.FormatUint(uint64(note.ID), 10)+"  ")
+				// Remove color codes for length calculation
+				timestampRaw := note.CreatedAt.Format("06-01-02 15:04")
+				timestamp := "\x1b[35m" + timestampRaw + "\x1b[0m"
+				idStr := strconv.FormatUint(uint64(note.ID), 10)
 				firstLine := strings.SplitN(note.Content, "\n", 2)[0]
-				wordlen = len(firstLine) + c1
-				var d = false
-				if len(strings.SplitN(note.Content, "\n", 2)) > 1 {
-					d = true
-				}
-				if d {
-					if len(firstLine) <= 30 {
-						fmt.Fprint(nh, firstLine)
-						fmt.Fprint(nh, "...")
-						wordlen += 3 // for the ellipsis
-					} else {
-						fmt.Fprint(nh, firstLine[:30])
-						fmt.Fprint(nh, "...")
-						wordlen += 3 // for the ellipsis
 
-					}
+				// Compose the line to print (without color codes for length)
+				lineRaw := timestampRaw + "  " + idStr + "  " + firstLine
+				if len(firstLine) > 30 {
+					lineRaw = timestampRaw + "  " + idStr + "  " + firstLine[:30] + "..."
+				}
+				wordlen = len(lineRaw)
+
+				// Print with color
+				fmt.Fprint(nh, timestamp+"  "+idStr+"  ")
+				if len(firstLine) > 30 {
+					fmt.Fprint(nh, firstLine[:30])
+					fmt.Fprint(nh, " ...")
 				} else {
-					if len(firstLine) <= 30 {
-						fmt.Fprint(nh, firstLine)
-					} else {
-						fmt.Fprint(nh, firstLine[:30])
-						fmt.Fprint(nh, "...")
-						wordlen += 3 // for the ellipsis
-
+					fmt.Fprint(nh, firstLine)
+					if strings.Contains(note.Content, "\n") {
+						fmt.Fprint(nh, " ...")
+						wordlen += 3
 					}
 				}
-				//pad spaces
+
+				// Pad spaces to fill the line
 				x, _ := nh.Size()
-				pad := x - wordlen + 8 // just to match;
+				pad := x - wordlen
 				if pad > 0 {
 					fmt.Fprint(nh, strings.Repeat(" ", pad))
 				}
