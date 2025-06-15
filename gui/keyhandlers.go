@@ -20,6 +20,7 @@ func (gui *Gui) HandleDataUpdate(g *gocui.Gui, v *gocui.View) error {
 // View setup;
 func (gui *Gui) HandleNoteDisplay(g *gocui.Gui, v *gocui.View) error {
 	// fmt.Fprint(os.Stdout, gui.windows[0].Name)
+	views.ToggleWindowDisplay(gui.windows[4], gui.g)
 	return views.ToggleWindowDisplay(gui.windows[0], gui.g)
 }
 
@@ -37,15 +38,15 @@ func (gui *Gui) HandleCmdDisplay(g *gocui.Gui, v *gocui.View) error {
 
 // View switch
 // Should not go to read-only views
-func (gui *Gui) HandleViewLoop(g *gocui.Gui, v *gocui.View) error {
+func (gui *Gui) HandleInputLoop(g *gocui.Gui, v *gocui.View) error {
 	switch v.Name() {
 	case "note":
 		g.CurrentView().FrameColor = gocui.ColorWhite
-		g.SetCurrentView("note-history")
-		g.Cursor = false
+		g.SetCurrentView("topic")
+		g.Cursor = true
 		g.CurrentView().FrameColor = gocui.ColorGreen
 		return nil
-	case "note-history":
+	case "topic":
 		g.CurrentView().FrameColor = gocui.ColorWhite
 
 		g.SetCurrentView("note")
