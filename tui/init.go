@@ -6,7 +6,8 @@ import (
 
 func StartTui() {
 	p := tea.NewProgram(NewModel())
-	if err, _ := p.Run(); err != nil {
+	//model, error
+	if _, err := p.Run(); err != nil {
 		panic(err)
 	}
 }
