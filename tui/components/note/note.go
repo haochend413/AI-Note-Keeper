@@ -1,19 +1,19 @@
 package note
 
 import (
-	"github.com/charmbracelet/bubbles/textinput"
+	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 )
 
 type Model struct {
-	ti     textinput.Model
+	ti     textarea.Model
 	width  int
 	height int
 }
 
 func NewModel() Model {
-	ti := textinput.New()
+	ti := textarea.New()
 	ti.Placeholder = "Note"
 	ti.Focus()
 	ti.CharLimit = 200
@@ -29,15 +29,13 @@ func (m Model) Init() tea.Cmd {
 
 // note update function
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
-	// switch msg := msg.(type) {
-	// case tea.WindowSizeMsg:
-	// 	m.width = msg.Width
-	// 	m.height = msg.Height
-	// 	m.ti.Width = msg.Width - 4 // adjust for border/padding
-	// }
+
+	// this is buggy; probably should not do that: use the mother component to handle everything, and even triggering the lower-level updates;
+
 	var cmd tea.Cmd
 	m.ti, cmd = m.ti.Update(msg)
 	return m, cmd
+
 }
 
 func (m Model) View() string {
