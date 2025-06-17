@@ -4,7 +4,7 @@ import (
 	"strconv"
 
 	"github.com/charmbracelet/bubbles/table"
-	"github.com/haochend413/mantis/models"
+	"github.com/haochend413/mantis/defs"
 )
 
 func (m *Model) SetSize(width, height int) {
@@ -14,7 +14,7 @@ func (m *Model) SetSize(width, height int) {
 
 }
 
-func (m *Model) UpdateDisplay(data models.DB_Data) {
+func (m *Model) UpdateDisplay(data defs.DB_Data) {
 	var rows []table.Row
 	for _, note := range data.NoteData {
 		rows = append(rows, table.Row{

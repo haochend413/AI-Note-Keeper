@@ -4,6 +4,7 @@ import (
 	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
+	"github.com/haochend413/mantis/defs"
 )
 
 type Model struct {
@@ -22,6 +23,7 @@ func NewModel() Model {
 	tb := table.New(
 		table.WithColumns(columns),
 	)
+	tb.Focus()
 
 	// ti.Width = 20
 	return Model{
@@ -35,12 +37,14 @@ func (m Model) Init() tea.Cmd {
 
 // note update function
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
-	// switch msg := msg.(type) {
-	// case tea.WindowSizeMsg:
-	// 	m.width = msg.Width
-	// 	m.height = msg.Height
-	// 	m.ti.Width = msg.Width - 4 // adjust for border/padding
-	// }
+	switch msg := msg.(type) {
+	case defs.CurrentViewMsg:
+		if msg != "note-history" {
+			m.tb.Blur()
+		} else {
+			m.tb.Focus()
+		}
+	}
 	var cmd tea.Cmd
 	m.tb, cmd = m.tb.Update(msg)
 	return m, cmd

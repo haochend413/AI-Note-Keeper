@@ -7,7 +7,7 @@ package dbcontroller
 
 import (
 	"github.com/haochend413/mantis/db"
-	"github.com/haochend413/mantis/models"
+	"github.com/haochend413/mantis/defs"
 )
 
 type DBManager struct {
@@ -28,24 +28,24 @@ func (m *DBManager) CloseManager() error {
 }
 
 // refresh database data; Run at quit or before specific functions
-func (m *DBManager) RefreshAll(data *models.DB_Data) error {
+func (m *DBManager) RefreshAll(data *defs.DB_Data) error {
 	return m.DataBases.NoteDB.SyncNoteData(data.NoteData)
 }
 
 // fetch database data, run at the Appinit
-func (m *DBManager) FetchAll() *models.DB_Data {
-	var history []models.Note
+func (m *DBManager) FetchAll() *defs.DB_Data {
+	var history []defs.Note
 	result := m.DataBases.NoteDB.Db.Find(&history)
 	if result.Error != nil {
 		// handle error properly (optional)
-		return &models.DB_Data{NoteData: []*models.Note{}}
+		return &defs.DB_Data{NoteData: []*defs.Note{}}
 	}
 
 	//value-pointer conversion
-	notePtrs := make([]*models.Note, 0, len(history))
+	notePtrs := make([]*defs.Note, 0, len(history))
 	for i := range history {
 		notePtrs = append(notePtrs, &history[i])
 	}
 
-	return &models.DB_Data{NoteData: notePtrs}
+	return &defs.DB_Data{NoteData: notePtrs}
 }
