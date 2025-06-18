@@ -11,6 +11,7 @@ type Model struct {
 	tb     table.Model
 	width  int
 	height int
+	focus  bool
 }
 
 func NewModel() Model {
@@ -25,7 +26,6 @@ func NewModel() Model {
 	)
 	tb.Focus()
 
-	// ti.Width = 20
 	return Model{
 		tb: tb,
 	}
@@ -39,10 +39,12 @@ func (m Model) Init() tea.Cmd {
 func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case defs.CurrentViewMsg:
-		if msg != "note-history" {
-			m.tb.Blur()
-		} else {
+		if msg == "note-history" {
+			m.focus = true
 			m.tb.Focus()
+		} else {
+			m.focus = false
+			m.tb.Blur()
 		}
 	}
 	var cmd tea.Cmd
@@ -51,17 +53,29 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	noteStyle := lipgloss.NewStyle().
+	historyStyle := lipgloss.NewStyle().
 		Border(lipgloss.NormalBorder()).
 		Padding(1, 2).
 		Width(m.width).
 		Height(m.height)
 
-	noteView := noteStyle.Render(m.tb.View())
+	if m.focus {
+		historyStyle = historyStyle.
+			BorderForeground(lipgloss.Color("48")).
+			Foreground(lipgloss.Color("15"))
+
+	} else {
+		historyStyle = historyStyle.
+			BorderForeground(lipgloss.Color("15")).
+			Foreground(lipgloss.Color("7"))
+
+	}
+
+	historyView := historyStyle.Render(m.tb.View())
 	// // Fill vertical space above the note to push it to the bottom
 	// above := m.height - lipgloss.Height(noteView)
 	// if above < 0 {
 	// 	above = 0
 	// }
-	return noteView
+	return historyView
 }

@@ -9,6 +9,8 @@ func (m *Model) SetSize(width, height int) {
 	m.width = width
 	m.height = height
 	// m.ti.Width = width - 4
+	m.ti.SetHeight(height - 1)
+	m.ti.SetWidth(width - 1)
 }
 
 // sendnote

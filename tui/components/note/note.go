@@ -11,6 +11,7 @@ type Model struct {
 	ti     textarea.Model
 	width  int
 	height int
+	focus  bool
 }
 
 func NewModel() Model {
@@ -34,10 +35,12 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	// this is buggy; probably should not do that: use the mother component to handle everything, and even triggering the lower-level updates;
 	switch msg := msg.(type) {
 	case defs.CurrentViewMsg:
-		if msg != "note" {
-			m.ti.Blur()
-		} else {
+		if msg == "note" {
+			m.focus = true
 			m.ti.Focus()
+		} else {
+			m.focus = false
+			m.ti.Blur()
 		}
 	}
 	var cmd tea.Cmd
@@ -52,6 +55,14 @@ func (m Model) View() string {
 		Padding(1, 2).
 		Width(m.width).
 		Height(m.height)
+
+	if m.focus {
+		noteStyle = noteStyle.
+			BorderForeground(lipgloss.Color("48"))
+	} else {
+		noteStyle = noteStyle.
+			BorderForeground(lipgloss.Color("15"))
+	}
 
 	noteView := noteStyle.Render(m.ti.View())
 	// // Fill vertical space above the note to push it to the bottom

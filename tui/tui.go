@@ -8,6 +8,7 @@ import (
 	dbcontroller "github.com/haochend413/mantis/controllers/db_controller"
 	"github.com/haochend413/mantis/defs"
 	"github.com/haochend413/mantis/tui/components/note"
+	noteDetail "github.com/haochend413/mantis/tui/components/note-detail"
 	noteHistory "github.com/haochend413/mantis/tui/components/note-history"
 	"github.com/haochend413/mantis/tui/keybindings"
 )
@@ -18,6 +19,7 @@ type Model struct {
 	// keybindings *keybindings.GlobalKeyMap
 	noteModel    note.Model
 	historyModel noteHistory.Model
+	detailModal  noteDetail.Model
 	//db
 	DB_Data   *defs.DB_Data
 	DBManager *dbcontroller.DBManager
@@ -32,6 +34,7 @@ func NewModel() Model {
 	return Model{
 		noteModel:    note.NewModel(),
 		historyModel: noteHistory.NewModel(),
+		detailModal:  noteDetail.NewModel(),
 		DB_Data:      &defs.DB_Data{},
 		DBManager:    &dbcontroller.DBManager{},
 		AppStatus: &defs.AppStatus{
@@ -40,16 +43,12 @@ func NewModel() Model {
 	}
 }
 
-type initMsg struct {
-	dumb bool
-}
-
 func (m *Model) initScreen() tea.Msg {
 	//init db
 	// m.DBManager.InitManager()
 	// m.DB_Data = m.DBManager.FetchAll()
 	// m.historyModel.UpdateDisplay(*m.DB_Data)
-	return initMsg{dumb: true}
+	return defs.InitMsg{}
 }
 
 func (m Model) Init() tea.Cmd {
@@ -64,12 +63,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	)
 
 	switch msg := msg.(type) {
-	case initMsg:
+	case defs.InitMsg:
 		//on init, load db data
 		m.DBManager.InitManager()
 		m.DB_Data = m.DBManager.FetchAll()
 		m.historyModel.UpdateDisplay(*m.DB_Data)
-		return m, nil
+		// return m, nil
 
 	case tea.KeyMsg:
 		switch {
@@ -90,7 +89,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 		m.noteModel.SetSize(msg.Width-4, msg.Height/5)
-		m.historyModel.SetSize(msg.Width/3, msg.Height/3*2)
+		m.historyModel.SetSize(msg.Width/3, msg.Height/5*4-5)
+		m.detailModal.SetSize(msg.Width/3*2-5, msg.Height/3)
 		return m, nil
 	case defs.NoteSendMsg:
 		//update history section;
@@ -99,8 +99,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.historyModel.UpdateDisplay(*m.DB_Data)
 		return m, nil
 	}
+
 	m.noteModel, noteCmd = m.noteModel.Update(msg)
 	m.historyModel, historyCmd = m.historyModel.Update(msg)
+
+	row := m.historyModel.GetCurrentRowData()
+	content := ""
+	if len(row) > 2 {
+		content = row[2]
+	}
+	m.detailModal.UpdateDisplay(content)
 
 	return m, tea.Batch(noteCmd, historyCmd)
 }
@@ -109,11 +117,14 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 func (m Model) View() string {
 	noteView := m.noteModel.View()
 	historyView := m.historyModel.View()
+	detailView := m.detailModal.View()
 
 	// Place the note at the bottom of the parent area
-	return lipgloss.JoinVertical(
+	top := lipgloss.JoinHorizontal(
 		lipgloss.Top,
 		historyView,
-		noteView,
+		detailView,
 	)
+	return lipgloss.JoinVertical(lipgloss.Top, top, noteView)
+
 }
