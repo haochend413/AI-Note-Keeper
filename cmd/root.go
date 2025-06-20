@@ -8,7 +8,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "m",
+	Use:   "mantis",
 	Short: "Mantis",
 	Long:  "Mantis: Workflow manage tool",
 	// Uncomment the following line if your bare application

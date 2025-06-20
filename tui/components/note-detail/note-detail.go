@@ -19,14 +19,14 @@ type Model struct {
 }
 
 func NewModel() Model {
-	vp := viewport.New(1, 1) // placeholder
+	vp := viewport.New(20, 20) // placeholder
 	vp.Style = lipgloss.NewStyle().
 		BorderStyle(lipgloss.RoundedBorder()).
 		BorderForeground(lipgloss.Color("62")).
 		Padding(1, 2)
 
 	//init renderer & initial display
-	const glamourGutter = 2
+	const glamourGutter = 6
 	glamourRenderWidth := 78 - vp.Style.GetHorizontalFrameSize() - glamourGutter
 
 	renderer, err := glamour.NewTermRenderer(

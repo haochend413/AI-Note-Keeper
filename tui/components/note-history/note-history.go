@@ -21,13 +21,27 @@ func NewModel() Model {
 		{Title: "Content", Width: 10},
 	}
 
-	tb := table.New(
+	t := table.New(
 		table.WithColumns(columns),
+
+		table.WithFocused(true),
+		table.WithHeight(10),
 	)
-	tb.Focus()
+
+	s := table.DefaultStyles()
+	s.Header = s.Header.
+		BorderStyle(lipgloss.NormalBorder()).
+		BorderForeground(lipgloss.Color("240")).
+		BorderBottom(true).
+		Bold(false)
+	s.Selected = s.Selected.
+		Foreground(lipgloss.Color("229")).
+		Background(lipgloss.Color("57")).
+		Bold(false)
+	t.SetStyles(s)
 
 	return Model{
-		tb: tb,
+		tb: t,
 	}
 }
 
@@ -53,29 +67,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	historyStyle := lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder()).
-		Padding(1, 2).
-		Width(m.width).
-		Height(m.height)
 
-	if m.focus {
-		historyStyle = historyStyle.
-			BorderForeground(lipgloss.Color("48")).
-			Foreground(lipgloss.Color("15"))
-
-	} else {
-		historyStyle = historyStyle.
-			BorderForeground(lipgloss.Color("15")).
-			Foreground(lipgloss.Color("7"))
-
-	}
-
-	historyView := historyStyle.Render(m.tb.View())
-	// // Fill vertical space above the note to push it to the bottom
-	// above := m.height - lipgloss.Height(noteView)
-	// if above < 0 {
-	// 	above = 0
-	// }
-	return historyView
+	return m.tb.View()
 }

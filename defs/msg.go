@@ -4,5 +4,4 @@ type NoteSendMsg = *Note
 type CurrentViewMsg = string
 
 type InitMsg struct {
-	dumb bool
 }

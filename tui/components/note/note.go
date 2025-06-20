@@ -3,7 +3,6 @@ package note
 import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
-	"github.com/charmbracelet/lipgloss"
 	"github.com/haochend413/mantis/defs"
 )
 
@@ -14,19 +13,32 @@ type Model struct {
 	focus  bool
 }
 
+func newTextarea() textarea.Model {
+	t := textarea.New()
+	t.Prompt = ""
+	t.Placeholder = "Type something"
+	t.ShowLineNumbers = true
+	t.Cursor.Style = cursorStyle
+	t.FocusedStyle.Placeholder = focusedPlaceholderStyle
+	t.BlurredStyle.Placeholder = placeholderStyle
+	t.FocusedStyle.CursorLine = cursorLineStyle
+	t.FocusedStyle.Base = focusedBorderStyle
+	t.BlurredStyle.Base = blurredBorderStyle
+	t.FocusedStyle.EndOfBuffer = endOfBufferStyle
+	t.BlurredStyle.EndOfBuffer = endOfBufferStyle
+	t.KeyMap.DeleteWordBackward.SetEnabled(false)
+	t.Blur()
+	return t
+}
 func NewModel() Model {
-	ti := textarea.New()
-	ti.Placeholder = "Note"
-	// ti.Focus()
-	ti.CharLimit = 200
-	// ti.Width = 20
+	ti := newTextarea()
 	return Model{
 		ti: ti,
 	}
 }
 
 func (m Model) Init() tea.Cmd {
-	return nil
+	return textarea.Blink
 }
 
 // note update function
@@ -50,25 +62,25 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-	noteStyle := lipgloss.NewStyle().
-		Border(lipgloss.NormalBorder()).
-		Padding(1, 2).
-		Width(m.width).
-		Height(m.height)
+	// noteStyle := lipgloss.NewStyle().
+	// 	Border(lipgloss.NormalBorder()).
+	// 	Padding(1, 1).
+	// 	Width(m.width).
+	// 	Height(m.height)
 
-	if m.focus {
-		noteStyle = noteStyle.
-			BorderForeground(lipgloss.Color("48"))
-	} else {
-		noteStyle = noteStyle.
-			BorderForeground(lipgloss.Color("15"))
-	}
-
-	noteView := noteStyle.Render(m.ti.View())
-	// // Fill vertical space above the note to push it to the bottom
-	// above := m.height - lipgloss.Height(noteView)
-	// if above < 0 {
-	// 	above = 0
+	// if m.focus {
+	// 	noteStyle = noteStyle.
+	// 		BorderForeground(lipgloss.Color("48"))
+	// } else {
+	// 	noteStyle = noteStyle.
+	// 		BorderForeground(lipgloss.Color("15"))
 	// }
-	return noteView
+
+	// noteView := noteStyle.Render(m.ti.View())
+	// // // Fill vertical space above the note to push it to the bottom
+	// // above := m.height - lipgloss.Height(noteView)
+	// // if above < 0 {
+	// // 	above = 0
+	// // }
+	return m.ti.View()
 }
