@@ -5,18 +5,7 @@ import (
 	"gorm.io/gorm"
 )
 
-// func (nd *NoteDB) AddNote(content string) error {
-// 	//init note struct
-// 	if content == "" {
-// 		return nil
-// 	}
-// 	note := &defs.Note{Content: content}
-// 	//pass the string to database;
-// 	result := nd.Db.Create(note)
-// 	return result.Errors
-// }
-
-// Clear all and then setup again
+// Clear all and then setup again; Sync database with app state
 // Need to change that to accept topics
 func (nd *NoteDB) SyncNoteData(notes []*defs.Note) error {
 	//This might be buggy: clear table

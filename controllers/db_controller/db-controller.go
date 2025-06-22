@@ -26,7 +26,23 @@ func (m *DBManager) CloseManager() error {
 }
 
 // refresh database data; Run at quit or before specific functions
+func (m *DBManager) RefreshDaily(data []*defs.DailyTask) error {
+	if err := m.DataBases.DailyDB.SyncDailyTaskData(data); err != nil {
+		return err
+	}
+	return nil
+}
+
+func (m *DBManager) RefreshNoteTopic(data *defs.DB_Data) error {
+
+	return m.DataBases.NoteDB.SyncNoteData(data.NoteData)
+}
+
+// refresh database data; Run at quit or before specific functions
 func (m *DBManager) RefreshAll(data *defs.DB_Data) error {
+	if err := m.DataBases.DailyDB.SyncDailyTaskData(data.DailyTaskData); err != nil {
+		return err
+	}
 	return m.DataBases.NoteDB.SyncNoteData(data.NoteData)
 }
 

@@ -35,4 +35,5 @@ func Execute(appState *state.AppState) {
 
 func init() {
 	rootCmd.AddCommand(tuiCmd)
+	rootCmd.AddCommand(dailyUICmd)
 }

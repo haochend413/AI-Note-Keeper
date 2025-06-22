@@ -8,7 +8,7 @@ type GlobalKeyMap struct {
 	SwitchFocus key.Binding
 }
 
-type NoteKeyMap struct {
+type DailyKeyMap struct {
 	ToggleSuccess key.Binding
 }
 
@@ -24,7 +24,7 @@ var GlobalKeys = GlobalKeyMap{
 	// ),
 }
 
-var Notekeys = NoteKeyMap{
+var DailyKeys = DailyKeyMap{
 	ToggleSuccess: key.NewBinding(
 		key.WithKeys("enter"),
 		key.WithHelp("enter", "toggle success"),
