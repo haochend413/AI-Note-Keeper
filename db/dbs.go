@@ -1,22 +1,27 @@
 package db
 
 import (
+	"github.com/haochend413/mantis/db/dailydb"
 	"github.com/haochend413/mantis/db/notedb"
 )
 
 // var DBs *DataBases
 
 type DataBases struct {
-	NoteDB *notedb.NoteDB
+	NoteDB  *notedb.NoteDB
+	DailyDB *dailydb.DailyDB
 }
 
 func (DBs *DataBases) InitAll() {
 	DBs.NoteDB = &notedb.NoteDB{}
-	DBs.NoteDB.Db = DBInit("notes")
+	DBs.NoteDB.Db = InitNodeDB()
+	DBs.DailyDB = &dailydb.DailyDB{}
+	DBs.DailyDB.Db = InitDailyDB()
 }
 
 func (DBs *DataBases) CloseAll() {
 	_ = DBs.NoteDB.Close()
+	_ = DBs.DailyDB.Close()
 }
 
 // // gorm.Model definition

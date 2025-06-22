@@ -1,7 +1,8 @@
 package cmd
 
 import (
-	"github.com/haochend413/mantis/tui"
+	"github.com/haochend413/mantis/app/state"
+	"github.com/haochend413/mantis/ui/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -12,6 +13,7 @@ var tuiCmd = &cobra.Command{
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
-		tui.StartTui()
+		appState := cmd.Context().Value(appStateKeyType{}).(*state.AppState)
+		tui.StartTui(appState)
 	},
 }

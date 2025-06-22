@@ -3,5 +3,6 @@ package defs
 type NoteSendMsg = *Note
 type CurrentViewMsg = string
 
-type InitMsg struct {
-}
+type InitMsg struct{}
+
+type TaskSucMsg struct{}

@@ -13,7 +13,7 @@ import (
 // 	note := &defs.Note{Content: content}
 // 	//pass the string to database;
 // 	result := nd.Db.Create(note)
-// 	return result.Error
+// 	return result.Errors
 // }
 
 // Clear all and then setup again

@@ -10,6 +10,7 @@ type DB_Data struct {
 	NoteData      []*Note
 	TopicData     []*Topic
 	NoteTopicData []*NoteTopic
+	DailyTaskData []*DailyTask
 }
 
 // struct for single message
@@ -30,4 +31,10 @@ type Topic struct {
 type NoteTopic struct {
 	NoteID  uint
 	TopicID uint
+}
+
+type DailyTask struct {
+	gorm.Model
+	Task    string
+	Success bool
 }

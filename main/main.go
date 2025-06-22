@@ -1,7 +1,12 @@
 package main
 
-import "github.com/haochend413/mantis/cmd"
+import (
+	"github.com/haochend413/mantis/app/state"
+	"github.com/haochend413/mantis/cmd"
+)
 
 func main() {
-	cmd.Execute()
+	// init app state
+	appState := state.NewAppState()
+	cmd.Execute(appState)
 }

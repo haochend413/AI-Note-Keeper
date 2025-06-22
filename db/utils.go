@@ -31,14 +31,27 @@ import (
 // }
 
 // Init new database
-func DBInit(name string) *gorm.DB {
+func InitNodeDB() *gorm.DB {
 	// open notes database
-	n, err := gorm.Open(sqlite.Open(name+".db"), &gorm.Config{})
+	n, err := gorm.Open(sqlite.Open("notes.db"), &gorm.Config{})
 	if err != nil {
 		log.Panicln(err)
 	}
 	//assign, which is not yet generalized
 	if err := n.AutoMigrate(&defs.Note{}); err != nil {
+		log.Panic(err)
+	}
+	return n
+}
+
+func InitDailyDB() *gorm.DB {
+	// open notes database
+	n, err := gorm.Open(sqlite.Open("daily.db"), &gorm.Config{})
+	if err != nil {
+		log.Panicln(err)
+	}
+	//assign, which is not yet generalized
+	if err := n.AutoMigrate(&defs.DailyTask{}); err != nil {
 		log.Panic(err)
 	}
 	return n

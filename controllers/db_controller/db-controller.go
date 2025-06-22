@@ -12,8 +12,6 @@ import (
 
 type DBManager struct {
 	DataBases *db.DataBases
-	// Controller should get and set the temporary data stored inside the gui component;
-	NeedRefresh bool
 }
 
 func (m *DBManager) InitManager() error {
@@ -34,18 +32,33 @@ func (m *DBManager) RefreshAll(data *defs.DB_Data) error {
 
 // fetch database data, run at the Appinit
 func (m *DBManager) FetchAll() *defs.DB_Data {
-	var history []defs.Note
-	result := m.DataBases.NoteDB.Db.Find(&history)
-	if result.Error != nil {
-		// handle error properly (optional)
+	var (
+		history   []defs.Note
+		dailytask []defs.DailyTask
+	)
+
+	// Fetch notes and daily tasks, handle errors
+	if err := m.DataBases.NoteDB.Db.Find(&history).Error; err != nil {
 		return &defs.DB_Data{NoteData: []*defs.Note{}}
+	}
+	if err := m.DataBases.DailyDB.Db.Find(&dailytask).Error; err != nil {
+		return &defs.DB_Data{DailyTaskData: []*defs.DailyTask{}}
 	}
 
 	//value-pointer conversion
+
 	notePtrs := make([]*defs.Note, 0, len(history))
-	for i := range history {
-		notePtrs = append(notePtrs, &history[i])
+	dailytaskPtrs := make([]*defs.DailyTask, 0, len(dailytask))
+	if len(history) != 0 {
+		for i := range history {
+			notePtrs = append(notePtrs, &history[i])
+		}
+	}
+	if len(dailytask) != 0 {
+		for i := range history {
+			dailytaskPtrs = append(dailytaskPtrs, &dailytask[i])
+		}
 	}
 
-	return &defs.DB_Data{NoteData: notePtrs}
+	return &defs.DB_Data{NoteData: notePtrs, DailyTaskData: dailytaskPtrs}
 }
