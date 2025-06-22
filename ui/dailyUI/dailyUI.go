@@ -55,19 +55,20 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//on init, load db data
 		m.DBManager.InitManager()
 		m.DB_Data = m.DBManager.FetchAll()
+		m.taskModel.TaskList = m.DB_Data.DailyTaskData
 		// return m, nil
 
 	case tea.KeyMsg:
 		switch {
 		case key.Matches(msg, keybindings.GlobalKeys.QuitApp):
 			//pass data back to db
-			m.DBManager.RefreshAll(m.DB_Data)
+			m.DBManager.RefreshDaily(m.DB_Data.DailyTaskData)
 			return m, tea.Quit
 
 		}
 
 	}
-
+	m.taskModel.UpdateDisplay(m.DB_Data.DailyTaskData)
 	m.taskModel, taskCmd = m.taskModel.Update(msg)
 
 	return m, taskCmd

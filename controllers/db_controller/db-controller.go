@@ -34,7 +34,6 @@ func (m *DBManager) RefreshDaily(data []*defs.DailyTask) error {
 }
 
 func (m *DBManager) RefreshNoteTopic(data *defs.DB_Data) error {
-
 	return m.DataBases.NoteDB.SyncNoteData(data.NoteData)
 }
 
@@ -71,7 +70,7 @@ func (m *DBManager) FetchAll() *defs.DB_Data {
 		}
 	}
 	if len(dailytask) != 0 {
-		for i := range history {
+		for i := range dailytask {
 			dailytaskPtrs = append(dailytaskPtrs, &dailytask[i])
 		}
 	}

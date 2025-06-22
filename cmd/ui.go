@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/haochend413/mantis/app/state"
 	"github.com/haochend413/mantis/defs"
 	dailyui "github.com/haochend413/mantis/ui/dailyUI"
@@ -35,6 +37,9 @@ var dailyUICmd = &cobra.Command{
 			// Flag is explicitly used
 			//here we add task
 			appState.DB_Data.DailyTaskData = append(appState.DB_Data.DailyTaskData, &defs.DailyTask{Task: taskContent})
+			if err := appState.DBManager.RefreshDaily(appState.DB_Data.DailyTaskData); err != nil {
+				fmt.Println("Failed to save task to DB:", err)
+			}
 			dailyui.StartDailyUI(appState)
 		} else {
 			// No flag provided, launch default UI
