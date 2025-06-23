@@ -13,6 +13,25 @@ func (m *Model) ToggleSuccess() tea.Cmd {
 	}
 }
 
+func (m *Model) DeleteTask() tea.Cmd {
+
+	return func() tea.Msg {
+		if len(m.TaskList) == 0 {
+			return defs.DeleteTaskMsg{}
+		}
+		m.TaskList = append(m.TaskList[:m.Index], m.TaskList[m.Index+1:]...)
+		// Adjust index if needed
+		if m.Index >= len(m.TaskList) && m.Index > 0 {
+			m.Index--
+		}
+		if len(m.TaskList) == 0 {
+			m.Index = 0
+		}
+		return defs.DeleteTaskMsg{}
+	}
+
+}
+
 var highlightStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("212")).Bold(true).Background(lipgloss.Color("8"))
 
 func (m *Model) UpdateDisplay(data []*defs.DailyTask) string {

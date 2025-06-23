@@ -13,9 +13,9 @@ type Model struct {
 }
 
 // init to be emoty
-func NewModel() Model {
+func NewModel(data []*defs.DailyTask) Model {
 	return Model{
-		TaskList: []*defs.DailyTask{},
+		TaskList: data,
 	}
 }
 
@@ -24,7 +24,7 @@ func (m Model) Init() tea.Cmd {
 }
 
 // note update function
-func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	switch msg := msg.(type) {
 
 	case tea.KeyMsg:
@@ -45,16 +45,19 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		case key.Matches(msg, keybindings.GlobalKeys.QuitApp):
 			//pass data back to db
 
-			return m, tea.Quit
+			return *m, tea.Quit
 		case key.Matches(msg, keybindings.DailyKeys.ToggleSuccess):
 			//pass data back to db
-			return m, m.ToggleSuccess()
+			return *m, m.ToggleSuccess()
+		case key.Matches(msg, keybindings.DailyKeys.DeleteTask):
+			//pass data back to db
+			return *m, m.DeleteTask()
 		}
-		return m, nil
+		return *m, nil
 	}
-	return m, nil
+	return *m, nil
 }
 
-func (m Model) View() string {
+func (m *Model) View() string {
 	return m.UpdateDisplay(m.TaskList)
 }

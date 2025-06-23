@@ -26,7 +26,7 @@ type Model struct {
 
 func NewModel(appState *state.AppState) Model {
 	return Model{
-		taskModel: tasklist.NewModel(),
+		taskModel: tasklist.NewModel(appState.DB_Data.DailyTaskData),
 		DB_Data:   &appState.DB_Data,
 		DBManager: appState.DBManager,
 	}
@@ -55,7 +55,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//on init, load db data
 		m.DBManager.InitManager()
 		m.DB_Data = m.DBManager.FetchAll()
-		m.taskModel.TaskList = m.DB_Data.DailyTaskData
 		// return m, nil
 
 	case tea.KeyMsg:
@@ -68,7 +67,6 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		}
 
 	}
-	m.taskModel.UpdateDisplay(m.DB_Data.DailyTaskData)
 	m.taskModel, taskCmd = m.taskModel.Update(msg)
 
 	return m, taskCmd

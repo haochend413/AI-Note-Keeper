@@ -10,6 +10,7 @@ type GlobalKeyMap struct {
 
 type DailyKeyMap struct {
 	ToggleSuccess key.Binding
+	DeleteTask    key.Binding
 }
 
 // init
@@ -28,5 +29,9 @@ var DailyKeys = DailyKeyMap{
 	ToggleSuccess: key.NewBinding(
 		key.WithKeys("enter"),
 		key.WithHelp("enter", "toggle success"),
+	),
+	DeleteTask: key.NewBinding(
+		key.WithKeys("backspace"),
+		key.WithHelp("backspace", "toggle success"),
 	),
 }
