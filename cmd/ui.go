@@ -11,21 +11,28 @@ import (
 	"github.com/spf13/cobra"
 )
 
-var tuiCmd = &cobra.Command{
-	Use:   "tui",
-	Short: "Init TUI",
+var topicContent string
+var ids []string
+
+var noteCmd = &cobra.Command{
+	Use:   "note",
+	Short: "Init noteUI",
 	Long:  "Mantis TUI",
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		appState := cmd.Context().Value(appStateKeyType{}).(*state.AppState)
-		if cmd.Flags().Changed("add") {
+		if cmd.Flags().Changed("add-topic") {
 			// Flag is explicitly used
 			//here we add task
 			appState.DB_Data.TopicData = append(appState.DB_Data.TopicData, &defs.Topic{Topic: topicContent})
-			if err := appState.DBManager.RefreshAll(appState.DB_Data); err != nil {
+			if err := appState.DBManager.RefreshNoteTopic(appState.DB_Data); err != nil {
 				fmt.Println("Failed to save topic to DB:", err)
 			}
+		} else if cmd.Flags().Changed("link") {
+			//do the connection
+			appState.DBManager.LinkNoteTopic(ids[0], ids[1])
+
 		} else {
 			// No flag provided, launch default UI
 			tui.StartTui(appState)
@@ -35,9 +42,8 @@ var tuiCmd = &cobra.Command{
 }
 
 var taskContent string
-var topicContent string
 
-var dailyUICmd = &cobra.Command{
+var dailyCmd = &cobra.Command{
 	Use:   "daily",
 	Short: "Init DailyUI",
 	Long:  "Mantis DailyUI",
@@ -60,6 +66,7 @@ var dailyUICmd = &cobra.Command{
 }
 
 func init() {
-	dailyUICmd.Flags().StringVarP(&taskContent, "add", "a", "", "New Daily Task")
-	tuiCmd.Flags().StringVarP(&topicContent, "add", "t", "", "New Topic")
+	dailyCmd.Flags().StringVarP(&taskContent, "add", "a", "", "New Daily Task")
+	noteCmd.Flags().StringVarP(&topicContent, "add-topic", "t", "", "New Topic")
+	noteCmd.Flags().StringSliceVarP(&ids, "link", "l", nil, "Link Note with Topic")
 }

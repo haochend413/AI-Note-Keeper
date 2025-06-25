@@ -8,8 +8,7 @@ import (
 // var DBs *DataBases
 
 type DataBases struct {
-	NoteDB *notedb.NoteDB
-
+	NoteDB  *notedb.NoteDB //Note, Topic, Note-Topic Link
 	DailyDB *dailydb.DailyDB
 }
 
