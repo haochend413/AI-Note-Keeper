@@ -38,7 +38,7 @@ func InitNodeDB() *gorm.DB {
 		log.Panicln(err)
 	}
 	//assign, which is not yet generalized
-	if err := n.AutoMigrate(&defs.Note{}); err != nil {
+	if err := n.AutoMigrate(&defs.Note{}, &defs.Topic{}); err != nil {
 		log.Panic(err)
 	}
 	return n

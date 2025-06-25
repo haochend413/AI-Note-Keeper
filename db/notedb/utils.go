@@ -10,8 +10,18 @@ import (
 func (nd *NoteDB) SyncNoteData(notes []*defs.Note) error {
 	//This might be buggy: clear table
 	nd.Db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&defs.Note{})
-
 	for _, n := range notes {
+		if result := nd.Db.Save(n); result.Error != nil {
+			return result.Error
+		}
+	}
+	return nil
+}
+
+func (nd *NoteDB) SyncTopicData(topics []*defs.Topic) error {
+	//This might be buggy: clear table
+	nd.Db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&defs.Topic{})
+	for _, n := range topics {
 		if result := nd.Db.Save(n); result.Error != nil {
 			return result.Error
 		}

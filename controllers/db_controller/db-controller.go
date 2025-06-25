@@ -34,12 +34,16 @@ func (m *DBManager) RefreshDaily(data []*defs.DailyTask) error {
 }
 
 func (m *DBManager) RefreshNoteTopic(data *defs.DB_Data) error {
+	m.DataBases.NoteDB.SyncTopicData(data.TopicData)
 	return m.DataBases.NoteDB.SyncNoteData(data.NoteData)
 }
 
 // refresh database data; Run at quit or before specific functions
 func (m *DBManager) RefreshAll(data *defs.DB_Data) error {
 	if err := m.DataBases.DailyDB.SyncDailyTaskData(data.DailyTaskData); err != nil {
+		return err
+	}
+	if err := m.DataBases.NoteDB.SyncTopicData(data.TopicData); err != nil {
 		return err
 	}
 	return m.DataBases.NoteDB.SyncNoteData(data.NoteData)
@@ -49,12 +53,16 @@ func (m *DBManager) RefreshAll(data *defs.DB_Data) error {
 func (m *DBManager) FetchAll() *defs.DB_Data {
 	var (
 		history   []defs.Note
+		topics    []defs.Topic
 		dailytask []defs.DailyTask
 	)
 
 	// Fetch notes and daily tasks, handle errors
 	if err := m.DataBases.NoteDB.Db.Find(&history).Error; err != nil {
 		return &defs.DB_Data{NoteData: []*defs.Note{}}
+	}
+	if err := m.DataBases.NoteDB.Db.Find(&topics).Error; err != nil {
+		return &defs.DB_Data{TopicData: []*defs.Topic{}}
 	}
 	if err := m.DataBases.DailyDB.Db.Find(&dailytask).Error; err != nil {
 		return &defs.DB_Data{DailyTaskData: []*defs.DailyTask{}}
@@ -64,6 +72,7 @@ func (m *DBManager) FetchAll() *defs.DB_Data {
 
 	notePtrs := make([]*defs.Note, 0, len(history))
 	dailytaskPtrs := make([]*defs.DailyTask, 0, len(dailytask))
+	topicPtrs := make([]*defs.Topic, 0, len(topics))
 	if len(history) != 0 {
 		for i := range history {
 			notePtrs = append(notePtrs, &history[i])
@@ -74,6 +83,11 @@ func (m *DBManager) FetchAll() *defs.DB_Data {
 			dailytaskPtrs = append(dailytaskPtrs, &dailytask[i])
 		}
 	}
+	if len(topics) != 0 {
+		for i := range topics {
+			topicPtrs = append(topicPtrs, &topics[i])
+		}
+	}
 
-	return &defs.DB_Data{NoteData: notePtrs, DailyTaskData: dailytaskPtrs}
+	return &defs.DB_Data{NoteData: notePtrs, DailyTaskData: dailytaskPtrs, TopicData: topicPtrs}
 }

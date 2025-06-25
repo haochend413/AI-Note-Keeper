@@ -5,14 +5,14 @@ import (
 )
 
 type NoteDB struct {
+	// three tables: note, topic and note-topic
 	Db *gorm.DB
 	// Name string
 }
 
-// func (nd *NoteDB) Init() error {
-// 	NoteDB.Db
-// }
-
+//	func (nd *NoteDB) Init() error {
+//		NoteDB.Db
+//	}
 func (nd *NoteDB) Close() error {
 	n, err := nd.Db.DB()
 	if err != nil {

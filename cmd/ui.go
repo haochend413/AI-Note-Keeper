@@ -19,11 +19,23 @@ var tuiCmd = &cobra.Command{
 	// has an action associated with it:
 	Run: func(cmd *cobra.Command, args []string) {
 		appState := cmd.Context().Value(appStateKeyType{}).(*state.AppState)
-		tui.StartTui(appState)
+		if cmd.Flags().Changed("add") {
+			// Flag is explicitly used
+			//here we add task
+			appState.DB_Data.TopicData = append(appState.DB_Data.TopicData, &defs.Topic{Topic: topicContent})
+			if err := appState.DBManager.RefreshAll(appState.DB_Data); err != nil {
+				fmt.Println("Failed to save topic to DB:", err)
+			}
+		} else {
+			// No flag provided, launch default UI
+			tui.StartTui(appState)
+		}
+
 	},
 }
 
 var taskContent string
+var topicContent string
 
 var dailyUICmd = &cobra.Command{
 	Use:   "daily",
@@ -40,7 +52,6 @@ var dailyUICmd = &cobra.Command{
 			if err := appState.DBManager.RefreshDaily(appState.DB_Data.DailyTaskData); err != nil {
 				fmt.Println("Failed to save task to DB:", err)
 			}
-			dailyui.StartDailyUI(appState)
 		} else {
 			// No flag provided, launch default UI
 			dailyui.StartDailyUI(appState)
@@ -50,4 +61,5 @@ var dailyUICmd = &cobra.Command{
 
 func init() {
 	dailyUICmd.Flags().StringVarP(&taskContent, "add", "a", "", "New Daily Task")
+	tuiCmd.Flags().StringVarP(&topicContent, "add", "t", "", "New Topic")
 }
