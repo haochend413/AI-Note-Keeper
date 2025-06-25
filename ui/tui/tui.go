@@ -36,7 +36,7 @@ func NewModel(appState *state.AppState) Model {
 		noteModel:    note.NewModel(),
 		historyModel: noteHistory.NewModel(),
 		detailModal:  noteDetail.NewModel(),
-		DB_Data:      &appState.DB_Data,
+		DB_Data:      appState.DB_Data,
 		DBManager:    appState.DBManager,
 		AppStatus: &defs.AppStatus{
 			CurrentView: "note",

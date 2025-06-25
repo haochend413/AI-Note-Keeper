@@ -8,12 +8,12 @@ import (
 )
 
 type Model struct {
-	TaskList []*defs.DailyTask
+	TaskList *[]*defs.DailyTask
 	Index    int
 }
 
 // init to be emoty
-func NewModel(data []*defs.DailyTask) Model {
+func NewModel(data *[]*defs.DailyTask) Model {
 	return Model{
 		TaskList: data,
 	}
@@ -31,8 +31,8 @@ func (m *Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 		switch msg.String() {
 		case "down":
 			m.Index++
-			if m.Index > len(m.TaskList) {
-				m.Index = len(m.TaskList) - 1
+			if m.Index > len(*m.TaskList) {
+				m.Index = len(*m.TaskList) - 1
 			}
 		case "up":
 			m.Index--
@@ -59,5 +59,5 @@ func (m *Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m *Model) View() string {
-	return m.UpdateDisplay(m.TaskList)
+	return m.UpdateDisplay(*m.TaskList)
 }

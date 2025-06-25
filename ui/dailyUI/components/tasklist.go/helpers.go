@@ -8,31 +8,28 @@ import (
 
 func (m *Model) ToggleSuccess() tea.Cmd {
 	return func() tea.Msg {
-		m.TaskList[m.Index].Success = !m.TaskList[m.Index].Success
+		(*m.TaskList)[m.Index].Success = !(*m.TaskList)[m.Index].Success
 		return defs.TaskSucMsg{}
 	}
 }
 
 func (m *Model) DeleteTask() tea.Cmd {
-
 	return func() tea.Msg {
-		if len(m.TaskList) == 0 {
+		if len(*m.TaskList) == 0 {
 			return defs.DeleteTaskMsg{}
 		}
-		m.TaskList = append(m.TaskList[:m.Index], m.TaskList[m.Index+1:]...)
-		// Adjust index if needed
-		if m.Index >= len(m.TaskList) && m.Index > 0 {
+		*m.TaskList = append((*m.TaskList)[:m.Index], (*m.TaskList)[m.Index+1:]...)
+		if m.Index >= len(*m.TaskList) && m.Index > 0 {
 			m.Index--
 		}
-		if len(m.TaskList) == 0 {
+		if len(*m.TaskList) == 0 {
 			m.Index = 0
 		}
 		return defs.DeleteTaskMsg{}
 	}
-
 }
 
-var highlightStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("212")).Bold(true).Background(lipgloss.Color("8"))
+var highlightStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("212")).Bold(true)
 
 func (m *Model) UpdateDisplay(data []*defs.DailyTask) string {
 	var out string
