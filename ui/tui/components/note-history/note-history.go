@@ -5,25 +5,27 @@ import (
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 	"github.com/haochend413/mantis/defs"
+	tui_defs "github.com/haochend413/mantis/defs/tui-defs"
 )
 
 type Model struct {
-	tb     table.Model
-	width  int
-	height int
-	focus  bool
+	tb      table.Model
+	width   int
+	height  int
+	focus   bool
+	context tui_defs.Context
 }
 
 func NewModel() Model {
 	columns := []table.Column{
 		{Title: "Create Time", Width: 20},
-		{Title: "ID", Width: 10},
+		{Title: "ID", Width: 5},
 		{Title: "Content", Width: 10},
+		{Title: "Topics", Width: 25},
 	}
 
 	t := table.New(
 		table.WithColumns(columns),
-
 		table.WithFocused(true),
 		table.WithHeight(10),
 	)
@@ -41,7 +43,8 @@ func NewModel() Model {
 	t.SetStyles(s)
 
 	return Model{
-		tb: t,
+		tb:      t,
+		context: tui_defs.Default,
 	}
 }
 

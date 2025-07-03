@@ -8,6 +8,7 @@ import (
 	"github.com/haochend413/mantis/app/state"
 	dbcontroller "github.com/haochend413/mantis/controllers/db_controller"
 	"github.com/haochend413/mantis/defs"
+	tui_defs "github.com/haochend413/mantis/defs/tui-defs"
 	"github.com/haochend413/mantis/ui/tui/components/note"
 	noteDetail "github.com/haochend413/mantis/ui/tui/components/note-detail"
 	noteHistory "github.com/haochend413/mantis/ui/tui/components/note-history"
@@ -28,7 +29,7 @@ type Model struct {
 	width  int
 	height int
 	//track
-	AppStatus *defs.AppStatus
+	AppStatus *tui_defs.AppStatus
 }
 
 func NewModel(appState *state.AppState) Model {
@@ -38,7 +39,7 @@ func NewModel(appState *state.AppState) Model {
 		detailModal:  noteDetail.NewModel(),
 		DB_Data:      appState.DB_Data,
 		DBManager:    appState.DBManager,
-		AppStatus: &defs.AppStatus{
+		AppStatus: &tui_defs.AppStatus{
 			CurrentView: "note",
 		},
 	}
@@ -79,13 +80,19 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 		case key.Matches(msg, keybindings.GlobalKeys.SwitchFocus):
 			return m, m.switchFocusCmd()
+		//note view key bindings
 		case m.AppStatus.CurrentView == "note":
 			switch {
 			case key.Matches(msg, keybindings.Notekeys.SendNote):
 				//send note to db
 				return m, m.noteModel.SendNoteCmd()
+			case key.Matches(msg, keybindings.Notekeys.SendTopic):
+				//send note to db
+				return m, m.noteModel.SendTopicCmd()
 			}
+
 		}
+
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
@@ -99,6 +106,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//update table display
 		m.historyModel.UpdateDisplay(*m.DB_Data)
 		return m, nil
+	case defs.TopicSendMsg:
+		//update history section;
+		m.DB_Data.TopicData = append(m.DB_Data.TopicData, msg)
+		//update table display
+		m.historyModel.UpdateDisplay(*m.DB_Data)
+		return m, nil
+
 	}
 
 	m.noteModel, noteCmd = m.noteModel.Update(msg)

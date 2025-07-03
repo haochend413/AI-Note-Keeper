@@ -9,7 +9,8 @@ type GlobalKeyMap struct {
 }
 
 type NoteKeyMap struct {
-	SendNote key.Binding
+	SendNote  key.Binding
+	SendTopic key.Binding
 }
 
 // init
@@ -24,9 +25,16 @@ var GlobalKeys = GlobalKeyMap{
 	),
 }
 
+// note
 var Notekeys = NoteKeyMap{
 	SendNote: key.NewBinding(
 		key.WithKeys("ctrl+s"),
 		key.WithHelp("ctrl+s", "send note to database"),
 	),
+	SendTopic: key.NewBinding(
+		key.WithKeys("ctrl+a"),
+		key.WithHelp("ctrl+a", "add topic to database"),
+	),
 }
+
+// history

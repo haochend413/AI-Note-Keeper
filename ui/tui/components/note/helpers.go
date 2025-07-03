@@ -30,6 +30,19 @@ func (m *Model) SendNoteCmd() tea.Cmd {
 	}
 }
 
+func (m *Model) SendTopicCmd() tea.Cmd {
+	content := m.ti.Value()
+	if content == "" {
+		return nil
+	}
+	m.ti.Reset()
+	return func() tea.Msg {
+		return &defs.Topic{
+			Topic: content,
+		}
+	}
+}
+
 // func (m *Model) FocusView() {
 
 // }

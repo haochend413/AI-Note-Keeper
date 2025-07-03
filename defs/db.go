@@ -7,9 +7,8 @@ import (
 // structure for db data storage
 
 type DB_Data struct {
-	NoteData  []*Note
-	TopicData []*Topic
-
+	NoteData      []*Note
+	TopicData     []*Topic
 	DailyTaskData []*DailyTask
 }
 

@@ -1,6 +1,7 @@
 package defs
 
 type NoteSendMsg = *Note
+type TopicSendMsg = *Topic
 type CurrentViewMsg = string
 
 type InitMsg struct{}

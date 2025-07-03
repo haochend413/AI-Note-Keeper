@@ -16,7 +16,7 @@ var ids []string
 
 var noteCmd = &cobra.Command{
 	Use:   "note",
-	Short: "Init noteUI",
+	Short: "Note-taking",
 	Long:  "Mantis TUI",
 	// Uncomment the following line if your bare application
 	// has an action associated with it:
@@ -32,7 +32,6 @@ var noteCmd = &cobra.Command{
 		} else if cmd.Flags().Changed("link") {
 			//do the connection
 			appState.DBManager.LinkNoteTopic(ids[0], ids[1])
-
 		} else {
 			// No flag provided, launch default UI
 			tui.StartTui(appState)
