@@ -6,10 +6,7 @@ Techs:
 - CLI with Cobra
 - TUI with Bubbletea + Lipgloss
 - Database with GORM + SQLite
-
-Features:
-- Terminal-based note taking and storing
-- Cmds fuzzy search
+- LLM with Ollama
 
 Previous Version: 
 - v1: based on gocui
