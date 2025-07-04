@@ -42,6 +42,9 @@ func ContextFiltering(context tui_defs.Context, row []*defs.Note) []*defs.Note {
 				note.CreatedAt.Day() == now.Day() {
 				result = append(result, note)
 			}
+			if note.ID == 0 {
+				result = append(result, note)
+			}
 		}
 		return result
 	case tui_defs.Week:
@@ -52,6 +55,9 @@ func ContextFiltering(context tui_defs.Context, row []*defs.Note) []*defs.Note {
 			if y1 == y2 && w1 == w2 {
 				result = append(result, note)
 			}
+			if note.ID == 0 {
+				result = append(result, note)
+			}
 		}
 		return result
 	case tui_defs.Month:
@@ -59,6 +65,9 @@ func ContextFiltering(context tui_defs.Context, row []*defs.Note) []*defs.Note {
 		for _, note := range row {
 			if note.CreatedAt.Year() == now.Year() &&
 				note.CreatedAt.Month() == now.Month() {
+				result = append(result, note)
+			}
+			if note.ID == 0 {
 				result = append(result, note)
 			}
 		}

@@ -44,7 +44,7 @@ func NewModel() Model {
 
 	return Model{
 		tb:      t,
-		context: tui_defs.Default,
+		context: tui_defs.Day,
 	}
 }
 
