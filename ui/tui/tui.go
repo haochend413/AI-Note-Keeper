@@ -78,6 +78,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.DBManager.RefreshAll(m.DB_Data)
 			return m, tea.Quit
 		case key.Matches(msg, keybindings.GlobalKeys.SwitchFocus):
+			// Toggle view manually
+			switch m.AppStatus.CurrentView {
+			case "note":
+				m.AppStatus.CurrentView = "note-history"
+			case "note-history":
+				m.AppStatus.CurrentView = "note"
+			}
 			return m, m.switchFocusCmd()
 		//note view key bindings
 		case m.AppStatus.CurrentView == "note":
