@@ -32,8 +32,8 @@ type Model struct {
 	AppStatus *tui_defs.AppStatus
 }
 
-func NewModel(appState *state.AppState) Model {
-	return Model{
+func NewModel(appState *state.AppState) *Model {
+	return &Model{
 		noteModel:    note.NewModel(),
 		historyModel: noteHistory.NewModel(),
 		detailModal:  noteDetail.NewModel(),
@@ -57,7 +57,7 @@ func (m Model) Init() tea.Cmd {
 	return tea.Batch(m.initScreen, tea.EnterAltScreen)
 }
 
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		noteCmd    tea.Cmd
 		historyCmd tea.Cmd
@@ -85,6 +85,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "note-history":
 				m.AppStatus.CurrentView = "note"
 			}
+
 			return m, m.switchFocusCmd()
 		//note view key bindings
 		case m.AppStatus.CurrentView == "note":

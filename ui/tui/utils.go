@@ -12,14 +12,13 @@ func (m *Model) switchFocusCmd() tea.Cmd {
 	case "note":
 		nextView = "note-history"
 	case "note-history":
-
 		nextView = "note"
 	default:
 		nextView = "note"
 	}
+
 	//return a msg for subcomponents to update their views
 	return func() tea.Msg {
 		return nextView
 	}
-
 }

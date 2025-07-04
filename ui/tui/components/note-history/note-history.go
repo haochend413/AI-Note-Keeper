@@ -63,6 +63,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 			m.focus = false
 			m.tb.Blur()
 		}
+		return m, nil
 	}
 	var cmd tea.Cmd
 	m.tb, cmd = m.tb.Update(msg)
