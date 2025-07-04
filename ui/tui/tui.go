@@ -40,7 +40,9 @@ func NewModel(appState *state.AppState) *Model {
 		DB_Data:      appState.DB_Data,
 		DBManager:    appState.DBManager,
 		AppStatus: &tui_defs.AppStatus{
-			CurrentView: "note",
+			//ok, more then "CurrentView", it should be understood as "NextView" :
+			// what is the view that the model will switch into after hitting tab.
+			CurrentView: "note-history",
 		},
 	}
 }
@@ -77,6 +79,12 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			//pass data back to db
 			m.DBManager.RefreshAll(m.DB_Data)
 			return m, tea.Quit
+		case key.Matches(msg, keybindings.GlobalKeys.FetchFromDB):
+			//pass data back to db
+			m.DBManager.RefreshAll(m.DB_Data)
+			m.DB_Data = m.DBManager.FetchAll()
+			m.historyModel.UpdateDisplay(*m.DB_Data)
+			return m, nil
 		case key.Matches(msg, keybindings.GlobalKeys.SwitchFocus):
 			// Toggle view manually
 			switch m.AppStatus.CurrentView {
@@ -85,7 +93,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case "note-history":
 				m.AppStatus.CurrentView = "note"
 			}
-
 			return m, m.switchFocusCmd()
 		//note view key bindings
 		case m.AppStatus.CurrentView == "note":
@@ -94,7 +101,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				//send note to db
 				return m, m.noteModel.SendNoteCmd()
 			case key.Matches(msg, keybindings.Notekeys.SendTopic):
-				//send note to db
+				//send topic to db
 				return m, m.noteModel.SendTopicCmd()
 			}
 		case m.AppStatus.CurrentView == "note-history":
@@ -108,7 +115,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case key.Matches(msg, keybindings.Historykeys.DefaultContext):
 				return m, m.historyModel.SwitchContextCmd(tui_defs.Default)
 			}
-
 		}
 
 	case tea.WindowSizeMsg:

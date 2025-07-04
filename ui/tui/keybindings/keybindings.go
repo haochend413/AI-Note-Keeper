@@ -6,6 +6,7 @@ import "github.com/charmbracelet/bubbles/key"
 type GlobalKeyMap struct {
 	QuitApp     key.Binding
 	SwitchFocus key.Binding
+	FetchFromDB key.Binding
 }
 
 type NoteKeyMap struct {
@@ -29,6 +30,10 @@ var GlobalKeys = GlobalKeyMap{
 	SwitchFocus: key.NewBinding(
 		key.WithKeys("tab"),
 		key.WithHelp("tab", "switch focus"),
+	),
+	FetchFromDB: key.NewBinding(
+		key.WithKeys("ctrl+q"),
+		key.WithHelp("ctrl+q", "switch focus"),
 	),
 }
 

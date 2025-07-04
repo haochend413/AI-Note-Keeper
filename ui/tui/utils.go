@@ -7,15 +7,16 @@ import (
 
 func (m *Model) switchFocusCmd() tea.Cmd {
 
-	var nextView defs.CurrentViewMsg
-	switch m.AppStatus.CurrentView {
-	case "note":
-		nextView = "note-history"
-	case "note-history":
-		nextView = "note"
-	default:
-		nextView = "note"
-	}
+	// var nextView defs.CurrentViewMsg
+	// switch m.AppStatus.CurrentView {
+	// case "note":
+	// 	nextView = "note-history"
+	// case "note-history":
+	// 	nextView = "note"
+	// default:
+	// 	nextView = "note"
+	// }
+	nextView := defs.CurrentViewMsg(m.AppStatus.CurrentView)
 
 	//return a msg for subcomponents to update their views
 	return func() tea.Msg {

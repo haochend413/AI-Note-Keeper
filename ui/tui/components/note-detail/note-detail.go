@@ -53,7 +53,7 @@ func (m Model) Init() tea.Cmd {
 }
 
 // note update function
-func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
+func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case defs.CurrentViewMsg:
 		if msg == "note-detail" {
