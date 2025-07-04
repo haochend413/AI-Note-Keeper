@@ -57,7 +57,6 @@ func (m Model) Init() tea.Cmd {
 	return tea.Batch(m.initScreen, tea.EnterAltScreen)
 }
 
-// note update function
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var (
 		noteCmd    tea.Cmd
@@ -90,6 +89,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				//send note to db
 				return m, m.noteModel.SendTopicCmd()
 			}
+		case m.AppStatus.CurrentView == "note-history":
+			switch {
+			case key.Matches(msg, keybindings.Historykeys.DayContext):
+				return m, m.historyModel.SwitchContextCmd(tui_defs.Day)
+			case key.Matches(msg, keybindings.Historykeys.MonthContext):
+				return m, m.historyModel.SwitchContextCmd(tui_defs.Month)
+			case key.Matches(msg, keybindings.Historykeys.WeekContext):
+				return m, m.historyModel.SwitchContextCmd(tui_defs.Week)
+			case key.Matches(msg, keybindings.Historykeys.DefaultContext):
+				return m, m.historyModel.SwitchContextCmd(tui_defs.Default)
+			}
 
 		}
 
@@ -112,7 +122,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//update table display
 		m.historyModel.UpdateDisplay(*m.DB_Data)
 		return m, nil
-
+	case defs.SwitchContextMsg:
+		m.historyModel.UpdateDisplay(*m.DB_Data)
 	}
 
 	m.noteModel, noteCmd = m.noteModel.Update(msg)

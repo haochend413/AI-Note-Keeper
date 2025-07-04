@@ -12,3 +12,5 @@ Daily Task
 type TaskSucMsg struct{}
 
 type DeleteTaskMsg struct{}
+
+type SwitchContextMsg struct{}
