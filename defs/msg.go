@@ -5,6 +5,8 @@ type TopicSendMsg = *Topic
 type CurrentViewMsg = string
 
 type InitMsg struct{}
+type SwitchContextMsg struct{}
+type DeleteNoteMsg struct{}
 
 /*
 Daily Task
@@ -12,5 +14,3 @@ Daily Task
 type TaskSucMsg struct{}
 
 type DeleteTaskMsg struct{}
-
-type SwitchContextMsg struct{}

@@ -97,6 +97,7 @@ func (m *Model) UpdateDisplay(data defs.DB_Data) {
 	m.tb.SetRows(rows)
 }
 
+// get current row
 func (m *Model) GetCurrentRowData() table.Row {
 	return m.tb.SelectedRow()
 }

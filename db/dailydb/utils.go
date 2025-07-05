@@ -9,7 +9,6 @@ import (
 func (dd *DailyDB) SyncDailyTaskData(tasks []*defs.DailyTask) error {
 	//This might be buggy: clear table
 	dd.Db.Session(&gorm.Session{AllowGlobalUpdate: true}).Delete(&defs.DailyTask{})
-
 	for _, n := range tasks {
 		if result := dd.Db.Save(n); result.Error != nil {
 			return result.Error

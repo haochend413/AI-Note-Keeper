@@ -19,6 +19,7 @@ type HistoryKeyMap struct {
 	WeekContext    key.Binding
 	MonthContext   key.Binding
 	DefaultContext key.Binding
+	DeleteNote     key.Binding
 }
 
 // init
@@ -51,6 +52,7 @@ var Notekeys = NoteKeyMap{
 
 // history
 var Historykeys = HistoryKeyMap{
+	//Context switch
 	DayContext: key.NewBinding(
 		key.WithKeys("D"),
 		key.WithHelp("D", "Day view"),
@@ -66,5 +68,10 @@ var Historykeys = HistoryKeyMap{
 	DefaultContext: key.NewBinding(
 		key.WithKeys("A"),
 		key.WithHelp("A", "Full view"),
+	),
+	//Functionalities
+	DeleteNote: key.NewBinding(
+		key.WithKeys("backspace"),
+		key.WithHelp("backspace", "Delete Selected Note"),
 	),
 }

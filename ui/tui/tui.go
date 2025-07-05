@@ -114,6 +114,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, m.historyModel.SwitchContextCmd(tui_defs.Week)
 			case key.Matches(msg, keybindings.Historykeys.DefaultContext):
 				return m, m.historyModel.SwitchContextCmd(tui_defs.Default)
+			case key.Matches(msg, keybindings.Historykeys.DeleteNote):
+				return m, m.deleteNoteCmd()
 			}
 		}
 
@@ -137,6 +139,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.historyModel.UpdateDisplay(*m.DB_Data)
 		return m, nil
 	case defs.SwitchContextMsg:
+		m.historyModel.UpdateDisplay(*m.DB_Data)
+	case defs.DeleteNoteMsg:
 		m.historyModel.UpdateDisplay(*m.DB_Data)
 	}
 
