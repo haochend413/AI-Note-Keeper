@@ -51,7 +51,7 @@ var Notekeys = NoteKeyMap{
 	),
 	ToggleEditable: key.NewBinding(
 		key.WithKeys("ctrl+e"),
-		key.WithHelp("ctrl+e", "add topic to database"),
+		key.WithHelp("ctrl+e", "toggle edit"),
 	),
 }
 

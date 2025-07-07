@@ -48,6 +48,6 @@ func (m *Model) ToggleEditable() tea.Cmd {
 	return nil
 }
 
-// func (m *Model) FocusView() {
-
-// }
+func (m *Model) UpdateDisplay(content string) {
+	m.ti.SetValue(content)
+}

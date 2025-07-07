@@ -149,13 +149,13 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	m.noteModel, noteCmd = m.noteModel.Update(msg)
 	m.historyModel, historyCmd = m.historyModel.Update(msg)
-
 	row := m.historyModel.GetCurrentRowData()
 	content := ""
 	if len(row) > 2 {
 		// get information;
 		content = row[2]
 	}
+	m.noteModel.UpdateDisplay(content)
 	m.detailModal.UpdateDisplay(content)
 
 	return m, tea.Batch(noteCmd, historyCmd)
