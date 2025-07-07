@@ -10,8 +10,9 @@ type GlobalKeyMap struct {
 }
 
 type NoteKeyMap struct {
-	SendNote  key.Binding
-	SendTopic key.Binding
+	SendNote       key.Binding
+	SendTopic      key.Binding
+	ToggleEditable key.Binding
 }
 
 type HistoryKeyMap struct {
@@ -47,6 +48,10 @@ var Notekeys = NoteKeyMap{
 	SendTopic: key.NewBinding(
 		key.WithKeys("ctrl+a"),
 		key.WithHelp("ctrl+a", "add topic to database"),
+	),
+	ToggleEditable: key.NewBinding(
+		key.WithKeys("ctrl+e"),
+		key.WithHelp("ctrl+e", "add topic to database"),
 	),
 }
 

@@ -97,6 +97,9 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//note view key bindings
 		case m.AppStatus.CurrentView == "note":
 			switch {
+			case key.Matches(msg, keybindings.Notekeys.ToggleEditable):
+				//send note to db
+				return m, m.noteModel.ToggleEditable()
 			case key.Matches(msg, keybindings.Notekeys.SendNote):
 				//send note to db
 				return m, m.noteModel.SendNoteCmd()
@@ -150,6 +153,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	row := m.historyModel.GetCurrentRowData()
 	content := ""
 	if len(row) > 2 {
+		// get information;
 		content = row[2]
 	}
 	m.detailModal.UpdateDisplay(content)

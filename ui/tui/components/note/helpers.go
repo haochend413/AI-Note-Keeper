@@ -43,6 +43,11 @@ func (m *Model) SendTopicCmd() tea.Cmd {
 	}
 }
 
+func (m *Model) ToggleEditable() tea.Cmd {
+	m.ti.SetEditable(!m.ti.Editable)
+	return nil
+}
+
 // func (m *Model) FocusView() {
 
 // }
