@@ -44,10 +44,14 @@ func (m *Model) SendTopicCmd() tea.Cmd {
 }
 
 func (m *Model) ToggleEditable() tea.Cmd {
-	m.ti.SetEditable(!m.ti.Editable)
+	// m.ti.SetEditable(!m.ti.Editable)
+	// println(m.ti.Editable)
 	return nil
 }
 
 func (m *Model) UpdateDisplay(content string) {
+	//ah, i see, so everything just reset to zero after i press the button...ok.
+	//so it is not the oter part's problem, it's my frontend. nice.
+	//it should only be called when I change the selected note
 	m.ti.SetValue(content)
 }

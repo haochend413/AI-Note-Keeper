@@ -58,6 +58,7 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 	}
 	var cmd tea.Cmd
 	m.ti, cmd = m.ti.Update(msg)
+
 	return m, cmd
 
 }

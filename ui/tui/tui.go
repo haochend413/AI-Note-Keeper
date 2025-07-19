@@ -149,15 +149,34 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 	m.noteModel, noteCmd = m.noteModel.Update(msg)
 	m.historyModel, historyCmd = m.historyModel.Update(msg)
-	row := m.historyModel.GetCurrentRowData()
-	content := ""
-	if len(row) > 2 {
-		// get information;
-		content = row[2]
-	}
-	m.noteModel.UpdateDisplay(content)
-	m.detailModal.UpdateDisplay(content)
 
+	// Get current row
+	currentRow := m.historyModel.GetCurrentRowData()
+
+	// Only update if row changed (by comparing with last selected row)
+	rowChanged := false
+	if len(currentRow) > 0 && len(m.AppStatus.LastRowSelected) > 0 && len(currentRow) == len(m.AppStatus.LastRowSelected) {
+		// Check if IDs are different (assuming ID is in index 1)
+		if currentRow[1] != m.AppStatus.LastRowSelected[1] {
+			rowChanged = true
+		}
+	} else if len(currentRow) != len(m.AppStatus.LastRowSelected) {
+		// Different length means different rows
+		rowChanged = true
+	}
+
+	// Update content only if row changed
+	if rowChanged {
+		content := ""
+		if len(currentRow) > 2 {
+			content = currentRow[2]
+		}
+		m.noteModel.UpdateDisplay(content)
+		m.detailModal.UpdateDisplay(content)
+
+		// Save current row as last selected
+		m.AppStatus.LastRowSelected = currentRow
+	}
 	return m, tea.Batch(noteCmd, historyCmd)
 }
 
