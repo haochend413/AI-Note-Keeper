@@ -22,14 +22,14 @@ func (m *DBManager) LinkNoteTopic(noteid string, topicid string) error {
 	return nil
 }
 
-// func (m *DBManager) DeleteNote(noteid int) error {
-// 	// Delete the note with the given ID from the database
-// 	if err := m.DataBases.NoteDB.Db.Delete(&defs.Note{}, noteid).Error; err != nil {
-// 		return err
-// 	}
-// 	return nil
-// }
-
 //What about in ui?
 //Let's not worry about that for now. Also, since everything is local, I do not really think that it would matter.
 //Best idea: constant update as a daemon;
+
+// modify the corresbonding note's content given id;
+func (m *DBManager) UpdateNote(id string, content string) error {
+	result := m.DataBases.NoteDB.Db.Model(&defs.Note{}).
+		Where("id = ?", id).
+		Update("content", content)
+	return result.Error
+}

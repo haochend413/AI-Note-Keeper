@@ -140,9 +140,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		content := ""
 		if currentRow != nil {
-			if len(currentRow.Content) > 2 {
-				content = currentRow.Content
-			}
+			content = currentRow.Content
+
 		}
 
 		m.noteModel.UpdateDisplay(content)
@@ -151,20 +150,23 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
 		m.height = msg.Height
-		m.noteModel.SetSize(msg.Width-4, msg.Height/5)
-		m.historyModel.SetSize(msg.Width/3, msg.Height/5*4-5)
+		m.noteModel.SetSize(msg.Width*2/3-4, msg.Height/3)
+		m.historyModel.SetSize(msg.Width/3, msg.Height-2)
 		m.detailModal.SetSize(msg.Width/3*2-5, msg.Height/3)
 		return m, nil
 	case defs.NoteSendMsg:
 		//update history section;
 		//.. in this case is lazy-sync a good idea ?
 		// rethink the whole idea;
+		m.DBManager.UpdateNote(strconv.Itoa(m.AppStatus.CurrentID), msg.Content)
 		m.DB_Data.NoteData = append(m.DB_Data.NoteData, msg)
 		//update table display
 		m.historyModel.UpdateDisplay(*m.DB_Data)
 		return m, nil
 	case defs.TopicSendMsg:
 		//update history section;
+		//just first rewrite to database, and then fetch;
+
 		m.DB_Data.TopicData = append(m.DB_Data.TopicData, msg)
 		//update table display
 		m.historyModel.UpdateDisplay(*m.DB_Data)
@@ -199,18 +201,15 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	return m, tea.Batch(noteCmd, historyCmd)
 }
 
-// Overall View management: positioning the views
 func (m Model) View() string {
 	noteView := m.noteModel.View()
 	historyView := m.historyModel.View()
-	detailView := m.detailModal.View()
+	// detailView := m.detailModal.View()
 
-	// Place the note at the bottom of the parent area
-	top := lipgloss.JoinHorizontal(
+	// Place the note view to the right of the history view (both at the top)
+	return lipgloss.JoinHorizontal(
 		lipgloss.Top,
 		historyView,
-		detailView,
+		noteView,
 	)
-	return lipgloss.JoinVertical(lipgloss.Top, top, noteView)
-
 }
