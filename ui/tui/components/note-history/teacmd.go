@@ -9,6 +9,6 @@ import (
 func (m *Model) SwitchContextCmd(nextContext tui_defs.Context) tea.Cmd {
 	m.context = nextContext
 	return func() tea.Msg {
-		return defs.SwitchContextMsg{}
+		return defs.UpdateHistoryDisplay{}
 	}
 }

@@ -21,6 +21,7 @@ type HistoryKeyMap struct {
 	MonthContext   key.Binding
 	DefaultContext key.Binding
 	DeleteNote     key.Binding
+	EditNote       key.Binding
 }
 
 // init
@@ -78,5 +79,9 @@ var Historykeys = HistoryKeyMap{
 	DeleteNote: key.NewBinding(
 		key.WithKeys("backspace"),
 		key.WithHelp("backspace", "Delete Selected Note"),
+	),
+	EditNote: key.NewBinding(
+		key.WithKeys("enter"),
+		key.WithHelp("enter", "Edit Current Note"),
 	),
 }

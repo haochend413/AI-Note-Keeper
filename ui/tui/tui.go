@@ -1,7 +1,10 @@
 package tui
 
 import (
+	"strconv"
+
 	"github.com/charmbracelet/bubbles/key"
+	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
 
@@ -119,8 +122,31 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, m.historyModel.SwitchContextCmd(tui_defs.Default)
 			case key.Matches(msg, keybindings.Historykeys.DeleteNote):
 				return m, m.deleteNoteCmd()
+			case key.Matches(msg, keybindings.Historykeys.EditNote):
+
+				m.EditNote()
+				return m, m.switchFocusCmd()
 			}
 		}
+
+	case table.MoveSelectMsg:
+		//update
+
+		row := *msg.Row
+		m.AppStatus.CurrentID, _ = strconv.Atoi(row[1])
+		currentRow, _ := m.DBManager.FetchNoteFromID(m.AppStatus.CurrentID)
+
+		// Update content only if row changed
+
+		content := ""
+		if currentRow != nil {
+			if len(currentRow.Content) > 2 {
+				content = currentRow.Content
+			}
+		}
+
+		m.noteModel.UpdateDisplay(content)
+		m.detailModal.UpdateDisplay(content)
 
 	case tea.WindowSizeMsg:
 		m.width = msg.Width
@@ -131,6 +157,8 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		return m, nil
 	case defs.NoteSendMsg:
 		//update history section;
+		//.. in this case is lazy-sync a good idea ?
+		// rethink the whole idea;
 		m.DB_Data.NoteData = append(m.DB_Data.NoteData, msg)
 		//update table display
 		m.historyModel.UpdateDisplay(*m.DB_Data)
@@ -141,42 +169,33 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//update table display
 		m.historyModel.UpdateDisplay(*m.DB_Data)
 		return m, nil
-	case defs.SwitchContextMsg:
+	case defs.UpdateHistoryDisplay:
 		m.historyModel.UpdateDisplay(*m.DB_Data)
-	case defs.DeleteNoteMsg:
-		m.historyModel.UpdateDisplay(*m.DB_Data)
+		// case defs.DeleteNoteMsg:
+		// 	m.historyModel.UpdateDisplay(*m.DB_Data)
 	}
 
 	m.noteModel, noteCmd = m.noteModel.Update(msg)
 	m.historyModel, historyCmd = m.historyModel.Update(msg)
 
-	// Get current row
-	currentRow := m.historyModel.GetCurrentRowData()
+	// // Get current row
+	// currentRow := m.historyModel.GetCurrentRowData()
 
-	// Only update if row changed (by comparing with last selected row)
-	rowChanged := false
-	if len(currentRow) > 0 && len(m.AppStatus.LastRowSelected) > 0 && len(currentRow) == len(m.AppStatus.LastRowSelected) {
-		// Check if IDs are different (assuming ID is in index 1)
-		if currentRow[1] != m.AppStatus.LastRowSelected[1] {
-			rowChanged = true
-		}
-	} else if len(currentRow) != len(m.AppStatus.LastRowSelected) {
-		// Different length means different rows
-		rowChanged = true
-	}
+	// // Only update if row changed (by comparing with last selected row)
+	// rowChanged := false
+	// if len(currentRow) > 0 && len(m.AppStatus.LastRowSelected) > 0 && len(currentRow) == len(m.AppStatus.LastRowSelected) {
+	// 	// Check if IDs are different (assuming ID is in index 1)
 
-	// Update content only if row changed
-	if rowChanged {
-		content := ""
-		if len(currentRow) > 2 {
-			content = currentRow[2]
-		}
-		m.noteModel.UpdateDisplay(content)
-		m.detailModal.UpdateDisplay(content)
+	// 	if currentRow[1] != m.AppStatus.LastRowSelected[1] {
+	// 		rowChanged = true
+	// 	}
+	// } else if len(currentRow) != len(m.AppStatus.LastRowSelected) {
+	// 	// Different length means different rows
+	// 	rowChanged = true
+	// }
 
-		// Save current row as last selected
-		m.AppStatus.LastRowSelected = currentRow
-	}
+	//fetch current note
+
 	return m, tea.Batch(noteCmd, historyCmd)
 }
 

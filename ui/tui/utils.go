@@ -27,6 +27,13 @@ func (m *Model) deleteNoteCmd() tea.Cmd {
 	}
 	m.DB_Data.NoteData = newNotes
 	return func() tea.Msg {
-		return defs.DeleteNoteMsg{}
+		return defs.UpdateHistoryDisplay{}
 	}
+}
+
+func (m *Model) EditNote() tea.Cmd {
+	//switch focus;
+
+	m.AppStatus.CurrentView = "note"
+	return nil
 }
