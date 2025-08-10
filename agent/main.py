@@ -1,16 +1,18 @@
 # main.py
 from fastapi import FastAPI
-
-app = FastAPI()
-
-
-@app.get("/")
-async def root():
-    return {"message": "Hello, FastAPI!"}
+from contextlib import asynccontextmanager
+from db.db import create_db_and_tables, db_router
 
 
-@app.post("/ask")
-async def ask(data: dict):
-    user_input = data.get("query")
-    # call your LLM agent logic here
-    return {"response": f"You said: {user_input}"}
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # onstartup, create;
+    print("ffff")
+    create_db_and_tables()
+    yield
+
+
+app = FastAPI(lifespan=lifespan)
+
+
+app.include_router(db_router, prefix="/db")
