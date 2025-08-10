@@ -26,6 +26,7 @@ type Topic struct {
 	Notes []*Note `gorm:"many2many:note_topics;"`
 }
 
+// for daily.db
 type DailyTask struct {
 	gorm.Model
 	Task    string

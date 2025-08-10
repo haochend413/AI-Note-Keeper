@@ -9,11 +9,13 @@ from sqlalchemy.orm import sessionmaker, selectinload
 from typing import AsyncGenerator, Annotated, List
 from db.models import Note, Topic, NoteTopicLink, NoteBase, TopicBase
 import asyncio
+from pathlib import Path
 
 db_router = APIRouter()
 
-
-sqlite_file_name = "database.db"
+sqlite_file_name = (
+    Path(__file__).parent.parent.parent / "client" / "main" / "notes.db"
+).as_posix()
 sqlite_url = f"sqlite:///{sqlite_file_name}"
 engine = create_engine(sqlite_url, echo=True)
 
@@ -24,10 +26,6 @@ def get_session():
 
 
 SessionDep = Annotated[Session, Depends(get_session)]
-
-
-def create_db_and_tables():
-    SQLModel.metadata.create_all(engine)
 
 
 # Input model for creating/updating a Note (no id, no topics by default)
