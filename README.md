@@ -6,7 +6,7 @@ Techs:
 - CLI with Cobra
 - TUI with Bubbletea + Lipgloss
 - Database with GORM + SQLite
-- LLM with Ollama
+- LLM with Fastapi + Ollama + LangChain + Qdrant
 
 Previous Version: 
 - v1: based on gocui 
