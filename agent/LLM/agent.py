@@ -43,12 +43,17 @@ qa_chain = None
 
 
 def ingest_notes(session: SessionDep):
+    # erase previous record before re-starting;
+    qdrant_client.delete_collection(collection_name="notes")
     notes = raw_data["notes"]
     docs = []
+    payload = []
     for note in notes:
-        topics = ", ".join(topic.name for topic in note.topics)
+        topics = ", ".join(topic.topic for topic in note.topics)
+        t_ids = ", ".join(str(topic.id) for topic in note.topics)
         text = f"Note: {note.content}\nTopics: {topics}"
         docs.append(text)
+        payload.append({"note_id": note.id, "topic_ids": t_ids, "topic_names": topics})
 
     global vectorstore, llm, retriever, qa_chain
     vectorstore = Qdrant.from_texts(
@@ -56,21 +61,22 @@ def ingest_notes(session: SessionDep):
         embedding=embedding_model,
         location="http://localhost:6333",
         collection_name="notes",
+        metadatas=payload,
     )
-    llm = Ollama(model="gemma3")
+    llm = Ollama(model="mistral")
     retriever = vectorstore.as_retriever(search_kwargs={"k": 10})
     qa_chain = RetrievalQA.from_chain_type(llm=llm, retriever=retriever)
     return {"status": "indexed"}
 
 
-# free query API
+# query API
 @llm_router.get("/query")
 def query_llm(q: str):
     if vectorstore is None or qa_chain is None:
         return {"error": "Vectorstore not initialized. Run /ingest first."}
         # Get retrieved docs for debugging
     docs = retriever.get_relevant_documents(q)
-    # print("Retrieved docs:", docs)
+    print("Retrieved docs:", docs)
 
     result = qa_chain.invoke({"query": q})
     return {"answer": result["result"]}
