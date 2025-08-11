@@ -22,8 +22,8 @@ type ViewType string
 
 type Model struct {
 	// keybindings *keybindings.GlobalKeyMap
-	noteModel    note.Model
-	historyModel noteHistory.Model
+	noteModel    *note.Model
+	historyModel *noteHistory.Model
 	detailModal  noteDetail.Model
 	//db
 	DB_Data   *defs.DB_Data
@@ -177,8 +177,10 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		// 	m.historyModel.UpdateDisplay(*m.DB_Data)
 	}
 
-	m.noteModel, noteCmd = m.noteModel.Update(msg)
-	m.historyModel, historyCmd = m.historyModel.Update(msg)
+	noteModelVal, noteCmd := m.noteModel.Update(msg)
+	m.noteModel = &noteModelVal
+	historyModelVal, historyCmd := m.historyModel.Update(msg)
+	m.historyModel = &historyModelVal
 
 	// // Get current row
 	// currentRow := m.historyModel.GetCurrentRowData()
@@ -203,6 +205,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 func (m Model) View() string {
 	noteView := m.noteModel.View()
+
 	historyView := m.historyModel.View()
 	// detailView := m.detailModal.View()
 

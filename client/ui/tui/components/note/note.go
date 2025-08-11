@@ -3,6 +3,7 @@ package note
 import (
 	"github.com/charmbracelet/bubbles/textarea"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/haochend413/mantis/defs"
 )
 
@@ -30,9 +31,9 @@ func newTextarea() textarea.Model {
 	t.Blur()
 	return t
 }
-func NewModel() Model {
+func NewModel() *Model {
 	ti := newTextarea()
-	return Model{
+	return &Model{
 		ti: ti,
 	}
 }
@@ -84,5 +85,6 @@ func (m Model) View() string {
 	// // if above < 0 {
 	// // 	above = 0
 	// // }
-	return m.ti.View()
+	style := lipgloss.NewStyle().Width(m.width)
+	return style.Render(m.ti.View())
 }

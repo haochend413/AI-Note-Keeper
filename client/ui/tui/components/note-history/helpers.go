@@ -1,6 +1,8 @@
 package noteHistory
 
 import (
+	"fmt"
+	"os"
 	"strconv"
 	"time"
 
@@ -13,6 +15,8 @@ func (m *Model) SetSize(width, height int) {
 	m.width = width
 	m.height = height
 	// m.ti.Width = width - 4
+	println("fffffff")
+	fmt.Fprintln(os.Stdout, width)
 	m.tb.SetHeight(height - 1)
 	m.tb.SetWidth(width - 1)
 }

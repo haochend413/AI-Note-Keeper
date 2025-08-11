@@ -16,7 +16,7 @@ type Model struct {
 	context tui_defs.Context
 }
 
-func NewModel() Model {
+func NewModel() *Model {
 	columns := []table.Column{
 		{Title: "Create Time", Width: 20},
 		{Title: "ID", Width: 5},
@@ -42,7 +42,7 @@ func NewModel() Model {
 		Bold(false)
 	t.SetStyles(s)
 
-	return Model{
+	return &Model{
 		tb:      t,
 		context: tui_defs.Day,
 	}
@@ -71,6 +71,6 @@ func (m Model) Update(msg tea.Msg) (Model, tea.Cmd) {
 }
 
 func (m Model) View() string {
-
-	return m.tb.View()
+	style := lipgloss.NewStyle().Width(m.width)
+	return style.Render(m.tb.View())
 }

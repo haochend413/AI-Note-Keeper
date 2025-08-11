@@ -63,13 +63,17 @@ def ingest_notes(session: SessionDep):
     return {"status": "indexed"}
 
 
+# free query API
 @llm_router.get("/query")
 def query_llm(q: str):
     if vectorstore is None or qa_chain is None:
         return {"error": "Vectorstore not initialized. Run /ingest first."}
         # Get retrieved docs for debugging
     docs = retriever.get_relevant_documents(q)
-    print("Retrieved docs:", docs)
+    # print("Retrieved docs:", docs)
 
     result = qa_chain.invoke({"query": q})
     return {"answer": result["result"]}
+
+
+# Summary API;
