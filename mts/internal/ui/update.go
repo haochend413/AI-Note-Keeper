@@ -102,6 +102,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch m.focus {
 			case FocusTable:
 				m.app.DeleteCurrentNote()
+				// m.textarea.SetValue(m.app.CurrentNoteContent())
+				m.app.SelectCurrentNote(m.table.Cursor())
 				m.textarea.SetValue(m.app.CurrentNoteContent())
 				m.updateTable()
 			case FocusTopics:
