@@ -15,7 +15,7 @@ func (m *Model) SetSize(width, height int) {
 
 // sendnote
 // type NoteSendMsg = *defs.Note
-
+// This needs to be changed: the msg needs to update the note with CurrentID;
 func (m *Model) SendNoteCmd() tea.Cmd {
 	content := m.ti.Value()
 	if content == "" {
@@ -23,9 +23,7 @@ func (m *Model) SendNoteCmd() tea.Cmd {
 	}
 	m.ti.Reset()
 	return func() tea.Msg {
-		return &defs.Note{
-			Content: content,
-		}
+		return content // Just send the content string
 	}
 }
 

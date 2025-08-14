@@ -8,10 +8,11 @@ import (
 )
 
 type Model struct {
-	ti     textarea.Model
-	width  int
-	height int
-	focus  bool
+	ti        textarea.Model
+	width     int
+	height    int
+	focus     bool
+	CurrentID int
 }
 
 func newTextarea() textarea.Model {

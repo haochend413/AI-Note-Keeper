@@ -6,4 +6,5 @@ type AppStatus struct {
 	//data
 	CurrentView ViewType
 	CurrentID   int
+	CurrentRow  int
 }

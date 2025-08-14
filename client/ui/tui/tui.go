@@ -1,6 +1,8 @@
 package tui
 
 import (
+	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/charmbracelet/bubbles/key"
@@ -134,6 +136,7 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 		row := *msg.Row
 		m.AppStatus.CurrentID, _ = strconv.Atoi(row[1])
+		fmt.Fprintln(os.Stdout, m.AppStatus.CurrentID)
 		currentRow, _ := m.DBManager.FetchNoteFromID(m.AppStatus.CurrentID)
 
 		// Update content only if row changed
@@ -143,7 +146,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			content = currentRow.Content
 
 		}
-
 		m.noteModel.UpdateDisplay(content)
 		m.detailModal.UpdateDisplay(content)
 
@@ -158,10 +160,15 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		//update history section;
 		//.. in this case is lazy-sync a good idea ?
 		// rethink the whole idea;
-		m.DBManager.UpdateNote(strconv.Itoa(m.AppStatus.CurrentID), msg.Content)
-		m.DB_Data.NoteData = append(m.DB_Data.NoteData, msg)
-		//update table display
-		m.historyModel.UpdateDisplay(*m.DB_Data)
+		// m.DBManager.UpdateNote(strconv.Itoa(m.AppStatus.CurrentID), msg.Content)
+		// for _, note := range m.DB_Data.NoteData {
+		// 	if int(note.ID) == m.AppStatus.CurrentID {
+		// 		note.Content = msg.Content
+		// 		break
+		// 	}
+		// }
+		// //update table display
+		// m.historyModel.UpdateDisplay(*m.DB_Data)
 		return m, nil
 	case defs.TopicSendMsg:
 		//update history section;
@@ -181,24 +188,6 @@ func (m *Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	m.noteModel = &noteModelVal
 	historyModelVal, historyCmd := m.historyModel.Update(msg)
 	m.historyModel = &historyModelVal
-
-	// // Get current row
-	// currentRow := m.historyModel.GetCurrentRowData()
-
-	// // Only update if row changed (by comparing with last selected row)
-	// rowChanged := false
-	// if len(currentRow) > 0 && len(m.AppStatus.LastRowSelected) > 0 && len(currentRow) == len(m.AppStatus.LastRowSelected) {
-	// 	// Check if IDs are different (assuming ID is in index 1)
-
-	// 	if currentRow[1] != m.AppStatus.LastRowSelected[1] {
-	// 		rowChanged = true
-	// 	}
-	// } else if len(currentRow) != len(m.AppStatus.LastRowSelected) {
-	// 	// Different length means different rows
-	// 	rowChanged = true
-	// }
-
-	//fetch current note
 
 	return m, tea.Batch(noteCmd, historyCmd)
 }
