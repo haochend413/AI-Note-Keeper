@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 	"time"
 
@@ -243,12 +244,7 @@ func (m *model) saveCurrentNote() {
 
 // Check if note is pending
 func (m *model) isPendingNote(note *Note) bool {
-	for _, pn := range m.pendingNotes {
-		if pn == note {
-			return true
-		}
-	}
-	return false
+	return slices.Contains(m.pendingNotes, note)
 }
 
 // Sync pending notes, updates, and deletions to DB
@@ -295,8 +291,8 @@ func (m *model) addTopicsToCurrentNote() {
 	if topicsText == "" {
 		return
 	}
-	topicNames := strings.Split(topicsText, ",")
-	for _, topicName := range topicNames {
+	topicNames := strings.SplitSeq(topicsText, ",")
+	for topicName := range topicNames {
 		topicName = strings.TrimSpace(topicName)
 		if topicName == "" {
 			continue
@@ -459,14 +455,15 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.searchInput.Focus()
 			}
 		case "enter":
-			if m.focus == focusSearch {
+			switch m.focus {
+			case focusSearch:
 				m.searchNotes(m.searchInput.Value())
 				m.focus = focusTable
 				m.table.Focus()
 				m.searchInput.Blur()
-			} else if m.focus == focusTable {
+			case focusTable:
 				m.selectCurrentNote()
-			} else if m.focus == focusTopics {
+			case focusTopics:
 				m.addTopicsToCurrentNote()
 			}
 		case "ctrl+s":
@@ -491,9 +488,10 @@ func (m model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.syncWithDatabase()
 			}
 		case "delete":
-			if m.focus == focusTable {
+			switch m.focus {
+			case focusTable:
 				m.deleteCurrentNote()
-			} else if m.focus == focusTopics {
+			case focusTopics:
 				m.topicInput.SetValue("")
 			}
 		case "/":

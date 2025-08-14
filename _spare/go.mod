@@ -1,4 +1,4 @@
-module mts
+module github.com/haochend413/mantis-ai
 
 go 1.24.4
 
