@@ -23,6 +23,11 @@ var (
 			Padding(0, 1).
 			Margin(0, 1, 0, 0)
 
+	simpleTopicsStyle = lipgloss.NewStyle().
+				BorderStyle(lipgloss.HiddenBorder()).
+				Padding(0, 0).
+				Margin(0, 0)
+
 	helpStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("241")).
 			Padding(1, 0, 0, 2)

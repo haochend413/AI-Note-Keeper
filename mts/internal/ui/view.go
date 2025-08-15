@@ -1,8 +1,6 @@
 package ui
 
 import (
-	"strings"
-
 	"github.com/charmbracelet/lipgloss"
 )
 
@@ -40,7 +38,22 @@ func (m Model) View() string {
 		editBox = baseStyle.Render(m.textarea.View())
 	}
 
-	var topicsDisplay string
+	var topicsTableBox string
+	if m.focus == FocusTopics {
+		// When focused, use a minimal highlight style
+		topicsTableBox = lipgloss.NewStyle().
+			Foreground(lipgloss.Color("69")).
+			Width(max(20, m.width/2-4)).
+			MaxHeight(4).
+			Render(m.topicsTable.View())
+	} else {
+		// When not focused, use an even more minimal style
+		topicsTableBox = lipgloss.NewStyle().
+			Width(max(20, m.width/2-4)).
+			MaxHeight(4).
+			Render(m.topicsTable.View())
+	}
+
 	var topicInputBox string
 	if m.focus == FocusTopics {
 		topicInputBox = focusedStyle.Render(m.topicInput.View())
@@ -48,41 +61,18 @@ func (m Model) View() string {
 		topicInputBox = baseStyle.Render(m.topicInput.View())
 	}
 
-	if m.app.HasCurrentNote() {
-		if topics := m.app.CurrentNoteTopics(); len(topics) > 0 {
-			var topicTags []string
-			maxWidth := m.width/2 - 8
-			currentWidth := 0
-			for _, topic := range topics {
-				tagText := topic.Topic
-				tagWidth := len(tagText) + 4
-				if currentWidth+tagWidth > maxWidth && len(topicTags) > 0 {
-					topicTags = append(topicTags, "\n")
-					currentWidth = 0
-				}
-				topicTags = append(topicTags, topicStyle.Render(tagText))
-				currentWidth += tagWidth
-			}
-			topicsDisplay = strings.Join(topicTags, "")
-		} else {
-			topicsDisplay = lipgloss.NewStyle().Foreground(lipgloss.Color("241")).Render("No topics")
-		}
-	} else {
-		topicsDisplay = "No note selected"
-	}
-
 	rightSide := lipgloss.JoinVertical(lipgloss.Left,
 		titleStyle.Render("✏️  Edit Note"),
 		editBox,
 		titleStyle.Render("🏷️  Topics"),
-		baseStyle.Width(max(20, m.width/2-4)).Height(4).Render(topicsDisplay),
+		simpleTopicsStyle.Render(topicsTableBox),
 		titleStyle.Render("➕ Add Topics"),
 		topicInputBox,
 	)
 
 	main := lipgloss.JoinHorizontal(lipgloss.Top, leftSide, rightSide)
 	help := helpStyle.Render(
-		"Tab: cycle focus • Enter: select/search/add-topic • /: search • Ctrl+N: new note (table only) • Ctrl+S: save • Ctrl+Q: sync DB • Del: delete • Ctrl+C: quit",
+		"Tab: cycle focus • Enter: select/search/add-topic • /: search • Ctrl+N: new note (table only) • Ctrl+S: save • Ctrl+Q: sync DB • Del: delete note/topic • Ctrl+C: quit",
 	)
 
 	return lipgloss.JoinVertical(lipgloss.Left, main, help)

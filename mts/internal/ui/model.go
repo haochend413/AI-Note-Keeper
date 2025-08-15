@@ -2,6 +2,7 @@ package ui
 
 import (
 	"fmt"
+	"sort"
 	"strings"
 	"time"
 
@@ -10,6 +11,7 @@ import (
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/haochend413/mts/internal/app"
+	"github.com/haochend413/mts/internal/models"
 )
 
 // FocusState represents the current UI focus
@@ -26,6 +28,7 @@ const (
 type Model struct {
 	app         *app.App
 	table       table.Model
+	topicsTable table.Model
 	textarea    textarea.Model
 	searchInput textinput.Model
 	topicInput  textinput.Model
@@ -49,6 +52,15 @@ func NewModel(application *app.App) Model {
 		table.WithHeight(15),
 	)
 
+	topicColumns := []table.Column{
+		{Title: "Topic", Width: 20},
+	}
+	tt := table.New(
+		table.WithColumns(topicColumns),
+		table.WithFocused(true),
+		table.WithHeight(4),
+	)
+
 	ta := textarea.New()
 	ta.Placeholder = "Edit note content..."
 	ta.SetWidth(50)
@@ -68,12 +80,14 @@ func NewModel(application *app.App) Model {
 	m := Model{
 		app:         application,
 		table:       t,
+		topicsTable: tt,
 		textarea:    ta,
 		searchInput: ti,
 		topicInput:  topicInput,
 		focus:       FocusSearch,
 	}
 	m.updateTable()
+	m.updateTopicsTable()
 	return m
 }
 
@@ -84,8 +98,15 @@ func (m Model) Init() tea.Cmd {
 
 // updateTable updates the table rows based on filtered notes
 func (m *Model) updateTable() {
-	rows := make([]table.Row, len(m.app.FilteredNotes))
-	for i, note := range m.app.FilteredNotes {
+	notes := make([]models.Note, 0, len(m.app.FilteredNotes))
+	for _, note := range m.app.FilteredNotes {
+		notes = append(notes, note)
+	}
+	sort.Slice(notes, func(i, j int) bool {
+		return notes[i].CreatedAt.Before(notes[j].CreatedAt)
+	})
+	rows := make([]table.Row, len(notes))
+	for i, note := range notes {
 		topics := make([]string, len(note.Topics))
 		for j, topic := range note.Topics {
 			topics[j] = topic.Topic
@@ -98,7 +119,6 @@ func (m *Model) updateTable() {
 		if len(content) > 38 {
 			content = content[:35] + "..."
 		}
-		// Use a placeholder ID and timestamp for pending notes
 		idStr := fmt.Sprintf("%d", note.ID)
 		timeStr := note.CreatedAt.Format("2006-01-02 15:04")
 		if note.ID == 0 { // Pending note
@@ -113,4 +133,22 @@ func (m *Model) updateTable() {
 		}
 	}
 	m.table.SetRows(rows)
+}
+
+// updateTopicsTable updates the topics table rows based on the current note's topics
+func (m *Model) updateTopicsTable() {
+	rows := []table.Row{}
+	if m.app.HasCurrentNote() {
+		if topics := m.app.CurrentNoteTopics(); len(topics) > 0 {
+			rows = make([]table.Row, len(topics))
+			for i, topic := range topics {
+				topicText := topic.Topic
+				if len(topicText) > 18 {
+					topicText = topicText[:15] + "..."
+				}
+				rows[i] = table.Row{topicText}
+			}
+		}
+	}
+	m.topicsTable.SetRows(rows)
 }
