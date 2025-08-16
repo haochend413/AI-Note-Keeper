@@ -28,13 +28,15 @@ def get_session():
 # query helper functions;
 
 
-@mcp.tool(
-    description="Get a list of all notes from the database. No parameters needed."
-)
+@mcp.tool(description="Get a list of all not-deleted notes from the database.")
 def read_notes(input: str = ""):
-    """Get all notes from the database. No input required."""
+    """Get all notes from the database that haven't been deleted."""
     with Session(engine) as session:
-        notes = session.exec(select(Note).options(selectinload(Note.topics))).all()
+        notes = session.exec(
+            select(Note)
+            .where(Note.deleted_at.is_(False) | Note.deleted_at.is_(None))
+            .options(selectinload(Note.topics))
+        ).all()
         return [note.model_dump() for note in notes]
 
 

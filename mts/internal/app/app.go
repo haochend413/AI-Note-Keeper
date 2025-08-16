@@ -224,10 +224,10 @@ func (a *App) RemoveTopicFromCurrentNote(topicToRemove string) {
 func (a *App) CreateNewNote(textareaValue string) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
-	content := strings.TrimSpace(textareaValue)
-	if content == "" {
-		content = "New note"
-	}
+	content := "New note"
+	// if content == "" {
+	// 	content = "New note"
+	// }
 	note := &models.Note{Content: content}
 	// Assign a temporary ID for pending notes
 	tempID := a.nextTempID

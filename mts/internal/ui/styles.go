@@ -17,11 +17,11 @@ var (
 			Bold(true).
 			Padding(0, 1)
 
-	topicStyle = lipgloss.NewStyle().
-			Foreground(lipgloss.Color("86")).
-			Background(lipgloss.Color("235")).
-			Padding(0, 1).
-			Margin(0, 1, 0, 0)
+	// topicStyle = lipgloss.NewStyle().
+	// 		Foreground(lipgloss.Color("86")).
+	// 		Background(lipgloss.Color("235")).
+	// 		Padding(0, 1).
+	// 		Margin(0, 1, 0, 0)
 
 	simpleTopicsStyle = lipgloss.NewStyle().
 				BorderStyle(lipgloss.HiddenBorder()).

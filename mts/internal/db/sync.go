@@ -52,7 +52,6 @@ func (d *DB) SyncWithDatabase(notes []models.Note, pendingNotes []*models.Note, 
 				log.Printf("Error finding note with ID %d: %v", notes[i].ID, err)
 				continue
 			}
-
 			// Update the note's content
 			existingNote.Content = notes[i].Content
 			d.Conn.Save(&existingNote)

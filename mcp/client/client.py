@@ -9,7 +9,6 @@ import asyncio
 
 server_params = StdioServerParameters(
     command="python",
-    # Make sure to update to the full absolute path to your math_server.py file
     args=[str(Path(__file__).parent.parent / "server" / "server.py")],
 )
 
@@ -21,6 +20,7 @@ async def main():
             await session.initialize()
 
             # Get tools
+
             tools = await load_mcp_tools(session)
             # Initialize Ollama LLM
             llm = ChatOllama(model="mistral")

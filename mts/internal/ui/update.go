@@ -87,6 +87,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.focus == FocusEdit {
 				m.app.SaveCurrentNote(m.textarea.Value())
 				m.updateTable()
+				m.focus = FocusTable
+				m.table.Focus()
+				m.searchInput.Blur()
+				m.topicInput.Blur()
+				m.topicsTable.Blur()
 			}
 		case "ctrl+n", "n":
 			if m.focus == FocusTable {
