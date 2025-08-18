@@ -18,7 +18,7 @@ async def main():
 
         agent = initialize_agent(
             tools,
-            llm=Ollama(model="mistral"),
+            llm=Ollama(model="llama3.1:latest"),
             agent=AgentType.CHAT_ZERO_SHOT_REACT_DESCRIPTION,
             verbose=True,
             handle_parsing_errors=True,

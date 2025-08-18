@@ -37,4 +37,6 @@ require (
 	golang.org/x/text v0.20.0 // indirect
 )
 
-replace github.com/charmbracelet/bubbles => github.com/haochend413/bubbles v1.1.2
+replace github.com/charmbracelet/bubbles => github.com/haochend413/bubbles v1.1.3
+
+// replace github.com/charmbracelet/bubbles => /Users/haochending/bubbles

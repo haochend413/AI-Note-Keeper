@@ -19,8 +19,10 @@ func (m Model) View() string {
 
 	var tableBox string
 	if m.focus == FocusTable {
+		m.table.SetStyles(focusedTableStyle)
 		tableBox = focusedStyle.Render(m.table.View())
 	} else {
+		m.table.SetStyles(baseTableStyle)
 		tableBox = baseStyle.Render(m.table.View())
 	}
 

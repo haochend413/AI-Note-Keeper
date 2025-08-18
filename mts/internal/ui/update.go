@@ -56,6 +56,8 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.topicInput.Blur()
 				m.topicsTable.Blur()
 			case FocusEdit:
+				m.app.SaveCurrentNote(m.textarea.Value())
+				m.updateTable()
 				m.focus = FocusTopics
 				m.textarea.Blur()
 				m.topicInput.Focus()
@@ -89,6 +91,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.updateTable()
 				m.focus = FocusTable
 				m.table.Focus()
+				m.textarea.Blur()
 				m.searchInput.Blur()
 				m.topicInput.Blur()
 				m.topicsTable.Blur()

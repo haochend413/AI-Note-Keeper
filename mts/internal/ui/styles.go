@@ -1,6 +1,9 @@
 package ui
 
-import "github.com/charmbracelet/lipgloss"
+import (
+	"github.com/charmbracelet/bubbles/table"
+	"github.com/charmbracelet/lipgloss"
+)
 
 // UI styles
 var (
@@ -10,7 +13,7 @@ var (
 
 	focusedStyle = lipgloss.NewStyle().
 			BorderStyle(lipgloss.NormalBorder()).
-			BorderForeground(lipgloss.Color("69"))
+			BorderForeground(lipgloss.Color("123"))
 
 	titleStyle = lipgloss.NewStyle().
 			Foreground(lipgloss.Color("211")).
@@ -32,3 +35,32 @@ var (
 			Foreground(lipgloss.Color("241")).
 			Padding(1, 0, 0, 2)
 )
+
+var baseTableStyle = table.Styles{
+	Header: lipgloss.NewStyle().
+		Bold(true).
+		Padding(0, 1).
+		Foreground(lipgloss.Color("252")),
+
+	Cell: lipgloss.NewStyle().
+		Padding(0, 1),
+	// Foreground(lipgloss.Color("246")),
+	Selected: lipgloss.NewStyle().
+		Foreground(lipgloss.Color("49")), // yellow
+	// 	Background(lipgloss.Color("236")), // dark gray
+
+}
+
+var focusedTableStyle = table.Styles{
+	Header: lipgloss.NewStyle().
+		Bold(true).
+		Padding(0, 1),
+	// Foreground(lipgloss.Color("229")),
+
+	Cell: lipgloss.NewStyle().
+		Padding(0, 1),
+	Selected: lipgloss.NewStyle().
+		Foreground(lipgloss.Color("49")).
+		Background(lipgloss.Color("243")). // purple
+		Bold(true),
+}

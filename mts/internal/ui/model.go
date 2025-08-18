@@ -55,6 +55,7 @@ func NewModel(application *app.App) Model {
 	topicColumns := []table.Column{
 		{Title: "Topic", Width: 20},
 	}
+	//topic table
 	tt := table.New(
 		table.WithColumns(topicColumns),
 		table.WithFocused(true),
