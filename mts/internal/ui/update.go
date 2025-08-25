@@ -1,8 +1,8 @@
 package ui
 
 import (
-	"github.com/charmbracelet/bubbles/table"
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/haochend413/bubbles/table"
 )
 
 // Update handles UI events and updates the model
@@ -15,19 +15,24 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 		m.ready = true
+		m.statusBar.SetWidth(m.width)
 		tableWidth := m.width/2 - 4
 		editWidth := m.width/2 - 4
 		columns := []table.Column{
 			{Title: "ID", Width: 4},
 			{Title: "Time", Width: 16},
-			{Title: "Content", Width: max(10, tableWidth-45)},
+			{Title: "Content", Width: max(10, tableWidth-70)},
 			{Title: "Topics", Width: 20},
 		}
 		m.table.SetColumns(columns)
-		m.table.SetHeight(m.height - 8)
+		if m.focus == FocusSearch {
+			m.table.SetHeight(m.height - 10)
+		} else {
+			m.table.SetHeight(m.height - 8)
+		}
 		m.textarea.SetWidth(max(20, editWidth))
 		m.textarea.SetHeight(max(5, m.height/2-6))
-		m.searchInput.Width = max(20, tableWidth)
+		m.searchInput.Width = tableWidth - 25
 		m.topicInput.Width = max(20, editWidth)
 		topicColumns := []table.Column{
 			{Title: "Topic", Width: max(20, editWidth-4)},
@@ -45,10 +50,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			switch m.focus {
 			case FocusSearch:
 				m.focus = FocusTable
+				m.searchInput.SetValue("")
 				m.table.Focus()
 				m.searchInput.Blur()
 				m.topicInput.Blur()
 				m.topicsTable.Blur()
+				// m.table.SetHeight(m.height - 8)
 			case FocusTable:
 				m.focus = FocusEdit
 				m.table.Blur()
@@ -57,16 +64,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.topicsTable.Blur()
 			case FocusEdit:
 				m.app.SaveCurrentNote(m.textarea.Value())
-				m.updateTable()
+				m.updateTable(Default)
 				m.focus = FocusTopics
 				m.textarea.Blur()
 				m.topicInput.Focus()
 				m.topicsTable.Focus()
 			case FocusTopics:
-				m.focus = FocusSearch
+				m.focus = FocusTable
 				m.topicInput.Blur()
 				m.topicsTable.Blur()
-				m.searchInput.Focus()
+				m.table.Focus()
 			}
 		case "enter":
 			switch m.focus {
@@ -75,7 +82,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.focus = FocusTable
 				m.table.Focus()
 				m.searchInput.Blur()
-				m.updateTable()
+				m.updateTable(Default)
 			case FocusTable:
 				m.app.SelectCurrentNote(m.table.Cursor())
 				m.textarea.SetValue(m.app.CurrentNoteContent())
@@ -88,7 +95,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "ctrl+s":
 			if m.focus == FocusEdit {
 				m.app.SaveCurrentNote(m.textarea.Value())
-				m.updateTable()
+				m.updateTable(Default)
 				m.focus = FocusTable
 				m.table.Focus()
 				m.textarea.Blur()
@@ -98,45 +105,43 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			}
 		case "ctrl+n", "n":
 			if m.focus == FocusTable {
-				m.app.CreateNewNote(m.textarea.Value())
+				m.app.CreateNewNote()
 				m.table.Focus()
 				m.textarea.SetValue(m.app.CurrentNoteContent())
-				m.updateTable()
+				m.updateTable(Default)
 				m.updateTopicsTable()
+				m.table.SetCursor(len(m.app.FilteredNotesList) - 1) // Set cursor to the last note
 			}
-		case "ctrl+a":
-			if m.focus == FocusEdit {
-				if !m.app.HasCurrentNote() {
-					m.app.CreateNewNote(m.textarea.Value())
-					m.textarea.SetValue(m.app.CurrentNoteContent())
-					m.updateTopicsTable()
-				} else {
-					m.app.SaveCurrentNote(m.textarea.Value())
-				}
-				m.updateTable()
-			}
+
 		case "ctrl+q":
 			m.app.SyncWithDatabase()
-			m.updateTable()
+			// print("1111111")
+			m.updateTable(Default)
 			m.updateTopicsTable()
-		case "delete":
+			m.updateFullTopicTable()
+			m.app.UpdateRecentNotes()
+
+			return m, nil
+		case "backspace":
 			switch m.focus {
 			case FocusTable:
-				m.app.DeleteCurrentNote()
-				m.updateTable()
+				m.app.DeleteCurrentNote(uint(m.table.Cursor()))
 				// Adjust cursor to a valid position
-				if len(m.app.FilteredNotes) > 0 {
+				m.updateTable(Default)
+				if len(m.app.FilteredNotesList) > 0 {
 					newCursor := m.table.Cursor()
-					if newCursor >= len(m.app.FilteredNotes) {
-						newCursor = len(m.app.FilteredNotes) - 1
+					if newCursor >= len(m.app.FilteredNotesList) {
+						newCursor = len(m.app.FilteredNotesList) - 1
 					}
 					m.table.SetCursor(newCursor)
 					m.app.SelectCurrentNote(newCursor)
 				} else {
 					m.app.SelectCurrentNote(0)
 				}
+
 				m.textarea.SetValue(m.app.CurrentNoteContent())
 				m.updateTopicsTable()
+				m.updateFullTopicTable()
 			case FocusTopics:
 				if m.app.HasCurrentNote() && len(m.app.CurrentNoteTopics()) > 0 {
 					// Remove the selected topic from the current note
@@ -151,16 +156,33 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 						}
 					}
 				}
-				m.updateTable() // Update note table to reflect topic changes
+				m.updateTable(Default) // Update note table to reflect topic changes
 			}
-		case "/":
+		case "s":
 			if m.focus == FocusTable {
 				m.focus = FocusSearch
 				m.searchInput.Focus()
 				m.table.Blur()
+				// m.table.SetHeight(m.height - 10)
+				// m.searchInput.SetValue("")
+				return m, nil // end the loop;
 			}
+		case "R":
+			if m.focus == FocusTable {
+				m.NoteSelector = Recent
+				m.updateTable(Recent)
+			}
+			return m, nil
+		case "A":
+			if m.focus == FocusTable {
+				m.NoteSelector = Default
+				m.updateTable(Default)
+			}
+			return m, nil
 		}
+
 	case table.MoveSelectMsg:
+		// tea.Printf("%s", "hihihihihihihi")
 		switch m.focus {
 		case FocusTable:
 			m.app.SelectCurrentNote(m.table.Cursor())

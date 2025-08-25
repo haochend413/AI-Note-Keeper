@@ -1,6 +1,8 @@
 package app
 
 import (
+	"log"
+	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -11,98 +13,136 @@ import (
 
 // App encapsulates application logic and state
 type App struct {
-	db            *db.DB
-	notes         map[uint]models.Note // Notes by ID (or temp ID for pending)
-	FilteredNotes map[uint]models.Note // Filtered notes by ID
-	currentNote   *models.Note
-	pendingNotes  map[*models.Note]uint // Map pending notes to their temp IDs
-	deletedNotes  map[uint]struct{}     // IDs of deleted notes
-	nextTempID    uint                  // For generating temporary IDs for pending notes
-	mutex         sync.Mutex            // Protect concurrent access to maps
+	db *db.DB
+	// We need both map and array, controlling the resources as pointers.
+	// Notes contains everything, even the ones that are to be deleted: during sync, we first create them, and then delete them in order to keep the IDs going.
+	// filtered notes are all the notes are notes that are shown on the screen.
+	// When filtering this, we might need to combine the list of deletednoteid to make sure the correct notes are listed.
+	NotesMap          map[uint]*models.Note
+	NotesList         []*models.Note
+	FilteredNotesMap  map[uint]*models.Note
+	FilteredNotesList []*models.Note
+	RecentNotes       []*models.Note
+	// The current note that is selected, in order to change and demo;
+	currentNote *models.Note
+	// In order to manage pending notes, We record the changed note IDs, and we send them back to database;
+	PendingNoteIDs []uint // ok on create we
+	DeletedNoteIDs []uint //
+	CreateNoteIDs  []uint
+
+	// This should be one larger than the last note i have in my db;
+	nextNoteCreateID uint
+	// Topics
+	Topics map[uint]*models.Topic
+	mutex  sync.Mutex
 }
 
 // NewApp creates a new application instance
 func NewApp(dbConn *db.DB) *App {
 	app := &App{
-		db:            dbConn,
-		notes:         make(map[uint]models.Note),
-		FilteredNotes: make(map[uint]models.Note),
-		pendingNotes:  make(map[*models.Note]uint),
-		deletedNotes:  make(map[uint]struct{}),
-		nextTempID:    1, // Start temporary IDs from 1
+		db:                dbConn,
+		NotesMap:          make(map[uint]*models.Note),
+		NotesList:         make([]*models.Note, 0),
+		FilteredNotesMap:  make(map[uint]*models.Note),
+		FilteredNotesList: make([]*models.Note, 0),
+		RecentNotes:       make([]*models.Note, 0),
+		Topics:            make(map[uint]*models.Topic),
+		nextNoteCreateID:  1, // Default starting ID if database is empty
+		PendingNoteIDs:    []uint{},
+		DeletedNoteIDs:    []uint{},
 	}
-	app.loadNotes()
+
+	//load everything into the app
+	app.loadData()
+	// print(len(app.NotesList))
+	// print(len(app.NotesMap))
+	// print(len(app.FilteredNotesList))
+	// print(len(app.FilteredNotesMap))
 	return app
 }
 
 // loadNotes loads notes from the database
-func (a *App) loadNotes() {
-	notes, err := a.db.SyncWithDatabase([]models.Note{}, nil, nil)
+// This function also load all topics
+func (a *App) loadData() {
+	//fetch data from database;
+	notes, topics, err := a.db.SyncData(make(map[uint]*models.Note), nil, nil, nil)
 	if err != nil {
 		// Log error but continue with empty notes
-		a.notes = make(map[uint]models.Note)
-		a.FilteredNotes = make(map[uint]models.Note)
-		return
+		log.Panic(err)
 	}
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
-	a.notes = make(map[uint]models.Note, len(notes))
-	a.FilteredNotes = make(map[uint]models.Note, len(notes))
-	maxID := uint(0)
+	// fill in the variables
+	a.FilteredNotesList = notes
+	a.NotesList = notes
+	a.NotesMap = make(map[uint]*models.Note, len(notes))
+	a.Topics = make(map[uint]*models.Topic, len(topics))
+	a.FilteredNotesMap = make(map[uint]*models.Note, len(notes))
+	// init recent
+	recentNotes, _ := a.db.GetRecentNotes()
+	a.RecentNotes = recentNotes
 	for _, note := range notes {
-		a.notes[note.ID] = note
-		a.FilteredNotes[note.ID] = note
-		if note.ID > maxID {
-			maxID = note.ID
-		}
+		a.NotesMap[note.ID] = note
+		a.FilteredNotesMap[note.ID] = note
 	}
-	a.nextTempID = maxID + 1
+	for _, topic := range topics {
+		a.Topics[topic.ID] = topic
+	}
+	// Query the database for the maximum ID, including deleted notes
+	var maxID uint
+	if err := a.db.Conn.Table("notes").Select("MAX(id)").Row().Scan(&maxID); err != nil {
+		log.Printf("Error fetching max ID: %v", err)
+	}
+
+	// Set the next ID for note creation
+	a.nextNoteCreateID = maxID + 1
 }
 
+// SearchNotes filters notes based on a query
+// This should remain the same; s
 // SearchNotes filters notes based on a query
 func (a *App) SearchNotes(query string) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 	if query == "" {
-		a.FilteredNotes = make(map[uint]models.Note, len(a.notes))
-		for id, note := range a.notes {
-			a.FilteredNotes[id] = note
-		}
+		a.FilteredNotesMap = a.NotesMap
+		a.FilteredNotesList = a.NotesList
 		return
 	}
 	query = strings.ToLower(query)
-	a.FilteredNotes = make(map[uint]models.Note)
-	for id, note := range a.notes {
+	a.FilteredNotesMap = make(map[uint]*models.Note)
+	a.FilteredNotesList = make([]*models.Note, 0)
+	for id, note := range a.NotesMap {
 		if strings.Contains(strings.ToLower(note.Content), query) {
-			a.FilteredNotes[id] = note
+			a.FilteredNotesMap[id] = note
+			a.FilteredNotesList = append(a.FilteredNotesList, note)
 			continue
 		}
 		for _, topic := range note.Topics {
 			if strings.Contains(strings.ToLower(topic.Topic), query) {
-				a.FilteredNotes[id] = note
+				a.FilteredNotesMap[id] = note
+				a.FilteredNotesList = append(a.FilteredNotesList, note)
 				break
 			}
 		}
 	}
+	sort.Slice(a.FilteredNotesList, func(i, j int) bool {
+		return a.FilteredNotesList[i].ID < a.FilteredNotesList[j].ID
+	})
 }
 
 // SelectCurrentNote sets the current note based on table cursor
+// This one should be slow since it turns. Maybe consider using more space. We should do this at the start of the program.
 func (a *App) SelectCurrentNote(cursor int) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
-	// Convert map to slice for cursor-based access
-	notes := make([]models.Note, 0, len(a.FilteredNotes))
-	for _, note := range a.FilteredNotes {
-		notes = append(notes, note)
-	}
-	sort.Slice(notes, func(i, j int) bool {
-		return notes[i].CreatedAt.Before(notes[j].CreatedAt)
-	})
-	if len(notes) == 0 || cursor >= len(notes) {
+
+	//This might be wrong: 1. needs sort;
+	if len(a.FilteredNotesList) == 0 || cursor >= len(a.FilteredNotesList) {
 		a.currentNote = nil
 		return
 	}
-	a.currentNote = &notes[cursor]
+	a.currentNote = a.FilteredNotesList[cursor]
 }
 
 // CurrentNoteContent returns the content of the current note
@@ -132,7 +172,8 @@ func (a *App) HasCurrentNote() bool {
 	return a.currentNote != nil
 }
 
-// SaveCurrentNote updates the current note's content in-memory
+// Update the content of current note, content fetched from terminal
+// No need to update the
 func (a *App) SaveCurrentNote(content string) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
@@ -142,14 +183,13 @@ func (a *App) SaveCurrentNote(content string) {
 	var noteID uint
 	if a.currentNote.ID != 0 {
 		noteID = a.currentNote.ID
-	} else if tempID, exists := a.pendingNotes[a.currentNote]; exists {
-		noteID = tempID
-	} else {
-		return // Should not happen
 	}
-	a.currentNote.Content = content
-	a.notes[noteID] = *a.currentNote
-	a.FilteredNotes[noteID] = *a.currentNote
+	a.currentNote.Content = content // This updates that note;
+	// a.NotesMap[noteID] = a.currentNote
+	a.PendingNoteIDs = append(a.PendingNoteIDs, noteID)
+	// a.FilteredNotesMap[noteID] = a.currentNote
+
+	//push into recent edited notes;
 }
 
 // AddTopicsToCurrentNote adds topics to the current note
@@ -159,14 +199,7 @@ func (a *App) AddTopicsToCurrentNote(topicsText string) {
 	if a.currentNote == nil {
 		return
 	}
-	var noteID uint
-	if a.currentNote.ID != 0 {
-		noteID = a.currentNote.ID
-	} else if tempID, exists := a.pendingNotes[a.currentNote]; exists {
-		noteID = tempID
-	} else {
-		return // Should not happen
-	}
+
 	topicsText = strings.TrimSpace(topicsText)
 	if topicsText == "" {
 		return
@@ -185,12 +218,16 @@ func (a *App) AddTopicsToCurrentNote(topicsText string) {
 				break
 			}
 		}
+
 		if !exists {
 			a.currentNote.Topics = append(a.currentNote.Topics, topic)
 		}
+
 	}
-	a.notes[noteID] = *a.currentNote
-	a.FilteredNotes[noteID] = *a.currentNote
+	//mark as pending
+	a.PendingNoteIDs = append(a.PendingNoteIDs, a.currentNote.ID)
+	// a.notes[noteID] = *a.currentNote
+	// a.FilteredNotes[noteID] = *a.currentNote
 }
 
 // RemoveTopicFromCurrentNote removes a topic from the current note
@@ -203,10 +240,6 @@ func (a *App) RemoveTopicFromCurrentNote(topicToRemove string) {
 	var noteID uint
 	if a.currentNote.ID != 0 {
 		noteID = a.currentNote.ID
-	} else if tempID, exists := a.pendingNotes[a.currentNote]; exists {
-		noteID = tempID
-	} else {
-		return // Should not happen
 	}
 
 	var newTopics []*models.Topic
@@ -216,130 +249,161 @@ func (a *App) RemoveTopicFromCurrentNote(topicToRemove string) {
 		}
 	}
 	a.currentNote.Topics = newTopics
-	a.notes[noteID] = *a.currentNote
-	a.FilteredNotes[noteID] = *a.currentNote
+	a.PendingNoteIDs = append(a.PendingNoteIDs, noteID)
 }
 
 // CreateNewNote creates a new pending note
-func (a *App) CreateNewNote(textareaValue string) {
+func (a *App) CreateNewNote() {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
-	content := "New note"
-	// if content == "" {
-	// 	content = "New note"
-	// }
-	note := &models.Note{Content: content}
-	// Assign a temporary ID for pending notes
-	tempID := a.nextTempID
-	a.nextTempID++
-	a.pendingNotes[note] = tempID
-	a.notes[tempID] = *note
-	a.FilteredNotes[tempID] = *note
+	note := &models.Note{Content: ""}
+	note.ID = a.nextNoteCreateID
+	a.nextNoteCreateID += 1
+	a.CreateNoteIDs = append(a.CreateNoteIDs, note.ID)
+	a.FilteredNotesMap[note.ID] = note
+	a.NotesMap[note.ID] = note
+	a.FilteredNotesList = append(a.FilteredNotesList, note)
+	a.NotesList = append(a.NotesList, note)
 	a.currentNote = note
+
 }
 
 // DeleteCurrentNote deletes the current note in-memory
-func (a *App) DeleteCurrentNote() {
+func (a *App) DeleteCurrentNote(cursor uint) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
-	if a.currentNote == nil || len(a.FilteredNotes) == 0 {
+
+	// Check if there's a current note
+	if a.currentNote == nil {
 		return
 	}
-	var noteID uint
-	if a.currentNote.ID != 0 {
-		noteID = a.currentNote.ID
-	} else if tempID, exists := a.pendingNotes[a.currentNote]; exists {
-		noteID = tempID
-	} else {
-		return // Should not happen
-	}
-	// Track deletion for database sync if note was in DB
-	if a.currentNote.ID != 0 && !a.isPendingNoteNoLock(a.currentNote) {
-		a.deletedNotes[a.currentNote.ID] = struct{}{}
-	}
-	// Remove from pendingNotes if applicable
-	delete(a.pendingNotes, a.currentNote)
-	delete(a.notes, noteID)
-	delete(a.FilteredNotes, noteID)
-	a.currentNote = nil
-}
 
-// isPendingNote checks if a note is pending (public method with locking)
-func (a *App) isPendingNote(note *models.Note) bool {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
-	return a.isPendingNoteNoLock(note)
-}
+	// Get the note ID
+	noteID := a.currentNote.ID
 
-// isPendingNoteNoLock checks if a note is pending without acquiring the mutex
-func (a *App) isPendingNoteNoLock(note *models.Note) bool {
-	_, exists := a.pendingNotes[note]
-	return exists
-}
+	// Handle differently based on note status
+	isInCreateList := slices.Contains(a.CreateNoteIDs, noteID)
 
-// HasChanges checks if there are unsaved changes
-func (a *App) HasChanges() bool {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
-	if len(a.pendingNotes) > 0 || len(a.deletedNotes) > 0 {
-		return true
-	}
-	for _, note := range a.notes {
-		if note.ID != 0 { // Only check notes in DB
-			var dbNote models.Note
-			if err := a.db.Conn.First(&dbNote, note.ID).Error; err == nil {
-				if dbNote.Content != note.Content || len(dbNote.Topics) != len(note.Topics) {
-					return true
-				}
-				for i, topic := range dbNote.Topics {
-					if i >= len(note.Topics) || topic.Topic != note.Topics[i].Topic {
-						return true
-					}
-				}
+	if isInCreateList {
+		for i, id := range a.CreateNoteIDs {
+			if id == noteID {
+				a.CreateNoteIDs = append(a.CreateNoteIDs[:i], a.CreateNoteIDs[i+1:]...)
+				//Remove it from the FilteredNotesList and Notes List
+				break
 			}
 		}
+	} else if noteID != 0 {
+		a.DeletedNoteIDs = append(a.DeletedNoteIDs, noteID)
+		// Also remove from pending if it was pending
+		// for i, id := range a.PendingNoteIDs {
+		// 	if id == noteID {
+		// 		a.PendingNoteIDs = append(a.PendingNoteIDs[:i], a.PendingNoteIDs[i+1:]...)
+		// 		break
+		// 	}
+		// }
 	}
-	return false
+
+	// // Remove from NotesMap
+	// delete(a.NotesMap, noteID)
+
+	// // Remove from NotesList
+	// for i, note := range a.NotesList {
+	// 	if note.ID == noteID {
+	// 		a.NotesList = append(a.NotesList[:i], a.NotesList[i+1:]...)
+	// 		break
+	// 	}
+	// }
+
+	delete(a.FilteredNotesMap, noteID)
+	for i, note := range a.FilteredNotesList {
+		if note.ID == noteID {
+			a.FilteredNotesList = append(a.FilteredNotesList[:i], a.FilteredNotesList[i+1:]...)
+			break
+		}
+	}
+
+	// Clear the current note reference
+	// This might need debugging and border conditions management;
+	if cursor >= uint(len(a.FilteredNotesList)) {
+		cursor = uint(len(a.FilteredNotesList) - 1)
+	}
+	a.currentNote = a.FilteredNotesList[cursor]
+}
+
+func (a *App) UpdateRecentNotes() {
+	d, _ := a.db.GetRecentNotes()
+	//lock
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+	a.RecentNotes = d
 }
 
 // SyncWithDatabase syncs in-memory changes to the database
+
 func (a *App) SyncWithDatabase() {
 	a.mutex.Lock()
-	// Convert maps to slices for database sync
-	notes := make([]models.Note, 0, len(a.notes))
-	for _, note := range a.notes {
-		notes = append(notes, note)
-	}
-	pendingNotes := make([]*models.Note, 0, len(a.pendingNotes))
-	for note := range a.pendingNotes {
-		pendingNotes = append(pendingNotes, note)
-	}
-	deletedNotes := make([]uint, 0, len(a.deletedNotes))
-	for id := range a.deletedNotes {
-		deletedNotes = append(deletedNotes, id)
+	// Make a copy of the IDs slices for the database operation
+	pendingIDs := append([]uint{}, a.PendingNoteIDs...)
+	deletedIDs := append([]uint{}, a.DeletedNoteIDs...)
+	createIDs := append([]uint{}, a.CreateNoteIDs...)
+
+	// Make a copy of the notes map
+	notesMapCopy := make(map[uint]*models.Note, len(a.NotesMap))
+	for id, note := range a.NotesMap {
+		notesMapCopy[id] = note
 	}
 	a.mutex.Unlock()
 
-	updatedNotes, err := a.db.SyncWithDatabase(notes, pendingNotes, deletedNotes)
+	// Sync with the database
+	updatedNotes, updatedTopics, err := a.db.SyncData(notesMapCopy, pendingIDs, deletedIDs, createIDs)
 	if err != nil {
-		// Log error but continue
+		log.Printf("Error syncing with database: %v", err)
 		return
 	}
 
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
-	// Update in-memory state
-	a.notes = make(map[uint]models.Note, len(updatedNotes))
-	a.FilteredNotes = make(map[uint]models.Note, len(updatedNotes))
+
+	// Update in-memory state with the fresh data from database
+	a.NotesList = updatedNotes
+	a.NotesMap = make(map[uint]*models.Note, len(updatedNotes))
+	a.Topics = make(map[uint]*models.Topic, len(updatedTopics))
+
+	// Reset the filtered lists/maps to show all notes
+	a.FilteredNotesList = updatedNotes
+	a.FilteredNotesMap = make(map[uint]*models.Note, len(updatedNotes))
+
+	// Find max ID for next note creation
 	maxID := uint(0)
 	for _, note := range updatedNotes {
-		a.notes[note.ID] = note
-		a.FilteredNotes[note.ID] = note
+		a.NotesMap[note.ID] = note
+		a.FilteredNotesMap[note.ID] = note
 		if note.ID > maxID {
 			maxID = note.ID
 		}
 	}
-	a.nextTempID = maxID + 1
-	a.pendingNotes = make(map[*models.Note]uint)
-	a.deletedNotes = make(map[uint]struct{})
+
+	// Update topics
+	for _, topic := range updatedTopics {
+		a.Topics[topic.ID] = topic
+	}
+
+	// Set next ID and clear pending/deleted lists
+	a.nextNoteCreateID = maxID + 1
+	a.PendingNoteIDs = []uint{}
+	a.DeletedNoteIDs = []uint{}
+	a.CreateNoteIDs = []uint{}
+
+	// If we had a current note, try to find it in the updated notes
+	if a.currentNote != nil {
+		currentID := a.currentNote.ID
+		if note, exists := a.NotesMap[currentID]; exists {
+			a.currentNote = note
+		} else if len(a.NotesList) > 0 {
+			// If current note was deleted, select the first note
+			a.currentNote = a.NotesList[0]
+		} else {
+			a.currentNote = nil
+		}
+	}
 }
