@@ -3,6 +3,7 @@ package ui
 import (
 	"fmt"
 	"sort"
+	"strconv"
 	"strings"
 	"time"
 
@@ -17,11 +18,11 @@ import (
 )
 
 // FocusState represents the current UI focus
-type Selector int
+type Selector string
 
 const (
-	Default Selector = iota
-	Recent
+	Default Selector = "Default"
+	Recent  Selector = "Recent"
 )
 
 type FocusState int
@@ -88,14 +89,23 @@ func NewModel(application *app.App) Model {
 
 	// Configure all left elements in sequence
 	sb.GetLeft(0).SetValue("Context: Default").SetColors("0", "39").SetWidth(25)
+
 	sb.GetLeft(1).SetValue("NoteID: -").SetColors("0", "45").SetWidth(15)
 	sb.GetLeft(2).SetValue("Updated: Never").SetColors("0", "37").SetWidth(20)
 	sb.GetLeft(3).SetValue("Version: 1.0").SetColors("0", "33").SetWidth(15)
+	//set tags for quick and consistent access
+	sb.SetTag(sb.GetLeft(0), "filter")
+	sb.SetTag(sb.GetLeft(1), "NoteID")
+	sb.SetTag(sb.GetLeft(2), "LastUpdated")
+	sb.SetTag(sb.GetLeft(3), "Version")
 
 	// Configure all right elements in sequence
 	sb.GetRight(0).SetValue("Ready").SetColors("0", "46").SetWidth(12)
 	sb.GetRight(1).SetValue("Not Synced").SetColors("0", "208").SetWidth(15)
 	sb.GetRight(2).SetValue(time.Now().Format("15:04:05")).SetColors("0", "226").SetWidth(10)
+	sb.SetTag(sb.GetRight(0), "Action")
+	sb.SetTag(sb.GetRight(1), "Synced")
+	sb.SetTag(sb.GetRight(2), "Time")
 
 	// You can also chain model methods
 	sb.SetWidth(100).SetHeight(1)
@@ -243,6 +253,20 @@ func (m *Model) updateTopicsTable() {
 	m.topicsTable.SetRows(rows)
 }
 
-// func (m *Model) updateStatusBar(s Selector) {
+func (m *Model) printSync(sync bool) string {
+	if sync {
+		return "Synced"
+	} else {
+		return "UnSynced"
+	}
+}
 
-// }
+func (m *Model) updateStatus() {
+	m.statusBar.GetTag("filter").SetValue(string(m.NoteSelector))
+	m.statusBar.GetTag("NoteID").SetValue(strconv.Itoa(m.app.CurrentNoteID()))
+	m.statusBar.GetTag("LastUpdated").SetValue(m.app.CurrentNoteLastUpdate().Format("01-02 15:04"))
+	m.statusBar.GetTag("Version").SetValue(strconv.Itoa(m.app.CurrentNoteFrequency()))
+	// m.statusBar.GetTag("Action")
+	m.statusBar.GetTag("Synced").SetValue(m.printSync(m.app.Synced))
+	m.statusBar.GetTag("Time").SetValue(time.Now().Format("15:04"))
+}

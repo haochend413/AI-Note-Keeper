@@ -6,6 +6,7 @@ import (
 	"sort"
 	"strings"
 	"sync"
+	"time"
 
 	"github.com/haochend413/mts/internal/db"
 	"github.com/haochend413/mts/internal/models"
@@ -32,6 +33,7 @@ type App struct {
 
 	// This should be one larger than the last note i have in my db;
 	nextNoteCreateID uint
+	Synced           bool
 	// Topics
 	Topics map[uint]*models.Topic
 	mutex  sync.Mutex
@@ -165,6 +167,34 @@ func (a *App) CurrentNoteTopics() []*models.Topic {
 	return a.currentNote.Topics
 }
 
+// CurrentNoteTopics returns the topics of the current note
+func (a *App) CurrentNoteID() int {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+	if a.currentNote == nil {
+		return -1
+	}
+	return int(a.currentNote.ID)
+}
+
+func (a *App) CurrentNoteLastUpdate() time.Time {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+	if a.currentNote == nil {
+		return time.Time{}
+	}
+	return a.currentNote.UpdatedAt
+}
+
+func (a *App) CurrentNoteFrequency() int {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+	if a.currentNote == nil {
+		return 0
+	}
+	return a.currentNote.Frequency
+}
+
 // HasCurrentNote checks if a note is currently selected
 func (a *App) HasCurrentNote() bool {
 	a.mutex.Lock()
@@ -184,12 +214,25 @@ func (a *App) SaveCurrentNote(content string) {
 	if a.currentNote.ID != 0 {
 		noteID = a.currentNote.ID
 	}
-	a.currentNote.Content = content // This updates that note;
+	if a.currentNote.Content != content {
+		a.currentNote.Content = content
+		a.currentNote.Frequency += 1
+		a.Synced = false
+		a.PendingNoteIDs = append(a.PendingNoteIDs, noteID)
+	}
 	// a.NotesMap[noteID] = a.currentNote
-	a.PendingNoteIDs = append(a.PendingNoteIDs, noteID)
+
 	// a.FilteredNotesMap[noteID] = a.currentNote
 
 	//push into recent edited notes;
+}
+
+func (a *App) HighlightCurrentNote() {
+	a.mutex.Lock()
+	defer a.mutex.Unlock()
+	if a.HasCurrentNote() {
+		a.currentNote.Highlight = !a.currentNote.Highlight
+	}
 }
 
 // AddTopicsToCurrentNote adds topics to the current note
@@ -225,6 +268,8 @@ func (a *App) AddTopicsToCurrentNote(topicsText string) {
 
 	}
 	//mark as pending
+	a.Synced = false
+
 	a.PendingNoteIDs = append(a.PendingNoteIDs, a.currentNote.ID)
 	// a.notes[noteID] = *a.currentNote
 	// a.FilteredNotes[noteID] = *a.currentNote
@@ -249,6 +294,8 @@ func (a *App) RemoveTopicFromCurrentNote(topicToRemove string) {
 		}
 	}
 	a.currentNote.Topics = newTopics
+	a.Synced = false
+
 	a.PendingNoteIDs = append(a.PendingNoteIDs, noteID)
 }
 
@@ -259,6 +306,8 @@ func (a *App) CreateNewNote() {
 	note := &models.Note{Content: ""}
 	note.ID = a.nextNoteCreateID
 	a.nextNoteCreateID += 1
+	a.Synced = false
+
 	a.CreateNoteIDs = append(a.CreateNoteIDs, note.ID)
 	a.FilteredNotesMap[note.ID] = note
 	a.NotesMap[note.ID] = note
@@ -321,6 +370,7 @@ func (a *App) DeleteCurrentNote(cursor uint) {
 			break
 		}
 	}
+	a.Synced = false
 
 	// Clear the current note reference
 	// This might need debugging and border conditions management;
@@ -393,6 +443,7 @@ func (a *App) SyncWithDatabase() {
 	a.PendingNoteIDs = []uint{}
 	a.DeletedNoteIDs = []uint{}
 	a.CreateNoteIDs = []uint{}
+	a.Synced = true
 
 	// If we had a current note, try to find it in the updated notes
 	if a.currentNote != nil {

@@ -8,11 +8,11 @@ import (
 // UI styles
 var (
 	baseStyle = lipgloss.NewStyle().
-			BorderStyle(lipgloss.NormalBorder()).
+			BorderStyle(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("240"))
 
 	focusedStyle = lipgloss.NewStyle().
-			BorderStyle(lipgloss.NormalBorder()).
+			BorderStyle(lipgloss.RoundedBorder()).
 			BorderForeground(lipgloss.Color("123"))
 
 	titleStyle = lipgloss.NewStyle().
