@@ -116,10 +116,15 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				m.table.Focus()
 				m.textarea.SetValue(m.app.CurrentNoteContent())
 				m.updateTable(Default)
-				m.updateTopicsTable()
 				m.table.SetCursor(len(m.app.FilteredNotesList) - 1) // Set cursor to the last note
 				m.updateStatus()
-
+				//set focus to edit
+				m.focus = FocusEdit
+				m.table.Blur()
+				m.textarea.Focus()
+				m.topicInput.Blur()
+				m.topicsTable.Blur()
+				return m, nil
 			}
 
 		case "ctrl+q":
@@ -180,14 +185,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			if m.focus == FocusTable {
 				m.NoteSelector = Recent
 				m.updateTable(Recent)
+				m.updateStatus()
 			}
-			return m, nil
+			// return m, nil
 		case "A":
 			if m.focus == FocusTable {
 				m.NoteSelector = Default
 				m.updateTable(Default)
+				m.updateStatus()
+
 			}
-			return m, nil
+			// return m, nil
 			// case "e":
 			// 	if m.focus == FocusTable {
 			// 		m.app.HighlightCurrentNote()
