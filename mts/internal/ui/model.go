@@ -13,17 +13,13 @@ import (
 	"github.com/haochend413/bubbles/textinput"
 
 	tea "github.com/charmbracelet/bubbletea"
+	"github.com/charmbracelet/lipgloss"
 	"github.com/haochend413/mts/internal/app"
 	"github.com/haochend413/mts/internal/models"
+	"github.com/haochend413/mts/internal/types"
 )
 
 // FocusState represents the current UI focus
-type Selector string
-
-const (
-	Default Selector = "Default"
-	Recent  Selector = "Recent"
-)
 
 type FocusState int
 
@@ -38,7 +34,7 @@ const (
 // Model represents the Bubble Tea model
 type Model struct {
 	app            *app.App
-	NoteSelector   Selector
+	NoteSelector   types.Selector
 	table          table.Model
 	fullTopicTable table.Model
 	topicsTable    table.Model
@@ -111,6 +107,21 @@ func NewModel(application *app.App) Model {
 	sb.SetWidth(100).SetHeight(1)
 
 	ta := textarea.New()
+
+	// Set colors
+	ta.FocusedStyle.CursorLine = lipgloss.NewStyle().Background(lipgloss.Color("240")).Foreground(lipgloss.Color("15"))
+	ta.BlurredStyle.CursorLine = lipgloss.NewStyle().Background(lipgloss.Color("240")).Foreground(lipgloss.Color("15"))
+
+	// Cursor styling
+	// ta.Cursor.Style = lipgloss.NewStyle().Foreground(lipgloss.Color("205"))
+
+	// // Placeholder styling
+	// ta.FocusedStyle.Placeholder = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+	// ta.BlurredStyle.Placeholder = lipgloss.NewStyle().Foreground(lipgloss.Color("240"))
+
+	// Prompt styling (the ">" symbol)
+	// ta.Prompt = "❯ "
+	// ta.PromptStyle = lipgloss.NewStyle().Foreground(lipgloss.Color("69"))
 	ta.Placeholder = "Edit note content..."
 	ta.SetWidth(50)
 	ta.SetHeight(10)
@@ -149,7 +160,7 @@ func NewModel(application *app.App) Model {
 		topicInput:     topicInput,
 		focus:          FocusTable,
 	}
-	m.updateTable(Default)
+	m.updateTable(types.Default)
 	m.updateTopicsTable()
 	// print(len(m.app.Topics))
 	m.updateFullTopicTable()
@@ -188,23 +199,25 @@ func (m *Model) updateFullTopicTable() {
 	// print("aaaaa")
 }
 
-// updateTable updates the table rows based on the selector; it also updates the selector of the app;
-func (m *Model) updateTable(s Selector) {
+// updateTable updates the table rows based on the types.Selector; it also updates the types.Selector of the app;
+func (m *Model) updateTable(s types.Selector) {
 	m.NoteSelector = s
+	// This needs to be reflected to the terminal. Maybe a new architecture will do. Like a pointer to the list.
+	// We need to find a new way to deal with search.
 	var selectedNotes []*models.Note
 	switch s {
-	case Recent:
-		selectedNotes = m.app.RecentNotes
-	default:
+	case types.Search:
 		selectedNotes = m.app.FilteredNotesList
+	default:
+		selectedNotes = *m.app.CurrentNotesListPtr
 	}
 	notes := make([]models.Note, 0, len(selectedNotes))
 	for _, note := range selectedNotes {
 		notes = append(notes, *note)
 	}
-	sort.Slice(notes, func(i, j int) bool {
-		return notes[i].ID < notes[j].ID
-	})
+	// sort.Slice(notes, func(i, j int) bool {
+	// 	return notes[i].ID < notes[j].ID
+	// })
 	rows := make([]table.Row, len(notes))
 	for i, note := range notes {
 		topics := make([]string, len(note.Topics))

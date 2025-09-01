@@ -10,6 +10,7 @@ import (
 
 	"github.com/haochend413/mts/internal/db"
 	"github.com/haochend413/mts/internal/models"
+	"github.com/haochend413/mts/internal/types"
 )
 
 // App encapsulates application logic and state
@@ -17,13 +18,23 @@ type App struct {
 	db *db.DB
 	// We need both map and array, controlling the resources as pointers.
 	// Notes contains everything, even the ones that are to be deleted: during sync, we first create them, and then delete them in order to keep the IDs going.
-	// filtered notes are all the notes are notes that are shown on the screen.
 	// When filtering this, we might need to combine the list of deletednoteid to make sure the correct notes are listed.
-	NotesMap          map[uint]*models.Note
-	NotesList         []*models.Note
-	FilteredNotesMap  map[uint]*models.Note
-	FilteredNotesList []*models.Note
-	RecentNotes       []*models.Note
+
+	//////
+
+	// New atchitecture:
+	// We will keep different sorts of lists :
+	// 1. all ; 2. Recent ; 3. Days ; 4. Weeks ; 5. months ; ...
+	// Then we will keep a currentNote pointer of a list, switching between different lists;
+	// For search, we will have a individual list that fetches from the pointer and modifies it. Basically the content of the search list depends on others.
+	NotesMap            map[uint]*models.Note
+	NotesList           []*models.Note // For all;
+	FilteredNotesMap    map[uint]*models.Note
+	FilteredNotesList   []*models.Note  // For search;
+	RecentNotes         []*models.Note  // For Recent
+	CurrentNotesListPtr *[]*models.Note //It points to different stuff.
+	//Notes selected based on NoteSelector
+
 	// The current note that is selected, in order to change and demo;
 	currentNote *models.Note
 	// In order to manage pending notes, We record the changed note IDs, and we send them back to database;
@@ -56,10 +67,6 @@ func NewApp(dbConn *db.DB) *App {
 
 	//load everything into the app
 	app.loadData()
-	// print(len(app.NotesList))
-	// print(len(app.NotesMap))
-	// print(len(app.FilteredNotesList))
-	// print(len(app.FilteredNotesMap))
 	return app
 }
 
@@ -90,6 +97,9 @@ func (a *App) loadData() {
 	for _, topic := range topics {
 		a.Topics[topic.ID] = topic
 	}
+
+	//init current Pointer ;
+	a.CurrentNotesListPtr = &a.FilteredNotesList
 	// Query the database for the maximum ID, including deleted notes
 	var maxID uint
 	if err := a.db.Conn.Table("notes").Select("MAX(id)").Row().Scan(&maxID); err != nil {
@@ -100,29 +110,35 @@ func (a *App) loadData() {
 	a.nextNoteCreateID = maxID + 1
 }
 
-// SearchNotes filters notes based on a query
-// This should remain the same; s
-// SearchNotes filters notes based on a query
+// This should search based on the input string, and populate the filtered list;
+// The mechanism is :
+// there will always be a filtered list out there, and search will switch the table content from the content of currentList to
+// the filtered list.
+// If not, we should populate using the NotesMap instead.
+// We do not actually need the map ? maybe ? we can try it.
+
+// This function now searches the ciurrentList and filter it to populate FilteredNotesMap and List.
 func (a *App) SearchNotes(query string) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
+	curr := *a.CurrentNotesListPtr
 	if query == "" {
-		a.FilteredNotesMap = a.NotesMap
-		a.FilteredNotesList = a.NotesList
+		// a.FilteredNotesMap = a.NotesMap
+		a.FilteredNotesList = curr
 		return
 	}
 	query = strings.ToLower(query)
 	a.FilteredNotesMap = make(map[uint]*models.Note)
 	a.FilteredNotesList = make([]*models.Note, 0)
-	for id, note := range a.NotesMap {
+	for _, note := range curr {
 		if strings.Contains(strings.ToLower(note.Content), query) {
-			a.FilteredNotesMap[id] = note
+			a.FilteredNotesMap[note.ID] = note
 			a.FilteredNotesList = append(a.FilteredNotesList, note)
 			continue
 		}
 		for _, topic := range note.Topics {
 			if strings.Contains(strings.ToLower(topic.Topic), query) {
-				a.FilteredNotesMap[id] = note
+				a.FilteredNotesMap[note.ID] = note
 				a.FilteredNotesList = append(a.FilteredNotesList, note)
 				break
 			}
@@ -140,12 +156,14 @@ func (a *App) SelectCurrentNote(cursor int) {
 	defer a.mutex.Unlock()
 
 	//This might be wrong: 1. needs sort;
-	if len(a.FilteredNotesList) == 0 || cursor >= len(a.FilteredNotesList) {
+	if len(*a.CurrentNotesListPtr) == 0 || cursor >= len(*a.CurrentNotesListPtr) {
 		a.currentNote = nil
 		return
 	}
-	a.currentNote = a.FilteredNotesList[cursor]
+	a.currentNote = (*a.CurrentNotesListPtr)[cursor]
 }
+
+//is the mutex really required ? Well, maybe making current note public is a good idea, this is just stupid.
 
 // CurrentNoteContent returns the content of the current note
 func (a *App) CurrentNoteContent() string {
@@ -203,7 +221,6 @@ func (a *App) HasCurrentNote() bool {
 }
 
 // Update the content of current note, content fetched from terminal
-// No need to update the
 func (a *App) SaveCurrentNote(content string) {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
@@ -220,11 +237,7 @@ func (a *App) SaveCurrentNote(content string) {
 		a.Synced = false
 		a.PendingNoteIDs = append(a.PendingNoteIDs, noteID)
 	}
-	// a.NotesMap[noteID] = a.currentNote
 
-	// a.FilteredNotesMap[noteID] = a.currentNote
-
-	//push into recent edited notes;
 }
 
 func (a *App) HighlightCurrentNote() {
@@ -243,7 +256,7 @@ func (a *App) AddTopicsToCurrentNote(topicsText string) {
 		return
 	}
 
-	topicsText = strings.TrimSpace(topicsText)
+	topicsText = strings.ToLower(strings.TrimSpace(topicsText))
 	if topicsText == "" {
 		return
 	}
@@ -304,15 +317,17 @@ func (a *App) CreateNewNote() {
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
 	note := &models.Note{Content: ""}
+	note.CreatedAt = time.Now()
+	note.UpdatedAt = time.Now()
 	note.ID = a.nextNoteCreateID
 	a.nextNoteCreateID += 1
 	a.Synced = false
-
 	a.CreateNoteIDs = append(a.CreateNoteIDs, note.ID)
-	a.FilteredNotesMap[note.ID] = note
+	// a.FilteredNotesMap[note.ID] = note
 	a.NotesMap[note.ID] = note
-	a.FilteredNotesList = append(a.FilteredNotesList, note)
+	// a.FilteredNotesList = append(a.FilteredNotesList, note)
 	a.NotesList = append(a.NotesList, note)
+	*a.CurrentNotesListPtr = append(*a.CurrentNotesListPtr, note)
 	a.currentNote = note
 
 }
@@ -363,10 +378,10 @@ func (a *App) DeleteCurrentNote(cursor uint) {
 	// 	}
 	// }
 
-	delete(a.FilteredNotesMap, noteID)
-	for i, note := range a.FilteredNotesList {
+	// delete(*a.CurrentNotesListPtr, noteID)
+	for i, note := range *a.CurrentNotesListPtr {
 		if note.ID == noteID {
-			a.FilteredNotesList = append(a.FilteredNotesList[:i], a.FilteredNotesList[i+1:]...)
+			*a.CurrentNotesListPtr = append((*a.CurrentNotesListPtr)[:i], (*a.CurrentNotesListPtr)[i+1:]...)
 			break
 		}
 	}
@@ -374,10 +389,10 @@ func (a *App) DeleteCurrentNote(cursor uint) {
 
 	// Clear the current note reference
 	// This might need debugging and border conditions management;
-	if cursor >= uint(len(a.FilteredNotesList)) {
-		cursor = uint(len(a.FilteredNotesList) - 1)
+	if cursor >= uint(len(*a.CurrentNotesListPtr)) {
+		cursor = uint(len(*a.CurrentNotesListPtr) - 1)
 	}
-	a.currentNote = a.FilteredNotesList[cursor]
+	a.currentNote = (*a.CurrentNotesListPtr)[cursor]
 }
 
 func (a *App) UpdateRecentNotes() {
@@ -385,7 +400,24 @@ func (a *App) UpdateRecentNotes() {
 	//lock
 	a.mutex.Lock()
 	defer a.mutex.Unlock()
+	// Sort by ID to match display order
+	sort.Slice(d, func(i, j int) bool {
+		return d[i].ID < d[j].ID
+	})
 	a.RecentNotes = d
+}
+
+func (a *App) UpdateCurrentList(s types.Selector) {
+	switch s {
+	case types.Default:
+		a.CurrentNotesListPtr = &a.NotesList
+	case types.Search:
+		// this should do nothing, since filtered notes list is independent of current notes list;
+		// see more to this
+		// but if that's the case, then many things have to be changed.
+	case types.Recent:
+		a.CurrentNotesListPtr = &a.RecentNotes
+	}
 }
 
 // SyncWithDatabase syncs in-memory changes to the database
@@ -419,15 +451,15 @@ func (a *App) SyncWithDatabase() {
 	a.NotesMap = make(map[uint]*models.Note, len(updatedNotes))
 	a.Topics = make(map[uint]*models.Topic, len(updatedTopics))
 
-	// Reset the filtered lists/maps to show all notes
-	a.FilteredNotesList = updatedNotes
-	a.FilteredNotesMap = make(map[uint]*models.Note, len(updatedNotes))
+	// // Reset the filtered lists/maps to show all notes
+	// a.FilteredNotesList = updatedNotes
+	// a.FilteredNotesMap = make(map[uint]*models.Note, len(updatedNotes))
 
 	// Find max ID for next note creation
 	maxID := uint(0)
 	for _, note := range updatedNotes {
 		a.NotesMap[note.ID] = note
-		a.FilteredNotesMap[note.ID] = note
+		// a.FilteredNotesMap[note.ID] = note
 		if note.ID > maxID {
 			maxID = note.ID
 		}

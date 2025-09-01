@@ -53,8 +53,9 @@ func (m Model) View() string {
 	}
 
 	realLeft := lipgloss.JoinHorizontal(lipgloss.Left,
-		fullTopicTableBox,
+
 		leftSide,
+		fullTopicTableBox,
 	)
 
 	var editBox string
