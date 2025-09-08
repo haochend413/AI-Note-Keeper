@@ -16,7 +16,6 @@ from langchain_core.messages import ToolMessage  # Add this import
 
 # Initialize Rich console
 console = Console()
-
 # Create server parameters for stdio connection
 server_params = StdioServerParameters(
     command="python",

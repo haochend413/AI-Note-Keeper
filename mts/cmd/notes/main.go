@@ -20,7 +20,6 @@ func main() {
 	// Initialize application
 	application := app.NewApp(dbConn)
 
-	print(len(application.Topics))
 	// Initialize UI model
 	model := ui.NewModel(application)
 

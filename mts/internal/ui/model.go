@@ -96,8 +96,8 @@ func NewModel(application *app.App) Model {
 	sb.SetTag(sb.GetLeft(3), "Version")
 
 	// Configure all right elements in sequence
-	sb.GetRight(0).SetValue("Ready").SetColors("0", "46").SetWidth(12)
-	sb.GetRight(1).SetValue("Not Synced").SetColors("0", "208").SetWidth(15)
+	sb.GetRight(0).SetValue("").SetColors("0", "46").SetWidth(12)
+	sb.GetRight(1).SetValue("Synced").SetColors("0", "208").SetWidth(15)
 	sb.GetRight(2).SetValue(time.Now().Format("15:04:05")).SetColors("0", "226").SetWidth(10)
 	sb.SetTag(sb.GetRight(0), "Action")
 	sb.SetTag(sb.GetRight(1), "Synced")

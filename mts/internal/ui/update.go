@@ -7,6 +7,7 @@ import (
 )
 
 // Update handles UI events and updates the model
+// On startup settings ?
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
 	var cmds []tea.Cmd
@@ -91,7 +92,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case FocusTable:
 				m.app.SelectCurrentNote(m.table.Cursor())
 				m.textarea.SetValue(m.app.CurrentNoteContent())
+				m.focus = FocusEdit
+				m.table.Blur()
+				m.textarea.Focus()
+				m.topicInput.Blur()
+				m.topicsTable.Blur()
 				m.updateTopicsTable()
+				return m, nil
 			case FocusTopics:
 				m.app.AddTopicsToCurrentNote(m.topicInput.Value())
 				m.topicInput.SetValue("")
@@ -138,6 +145,13 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			m.app.UpdateRecentNotes()
 			m.updateStatus()
 			return m, nil
+		case "ctrl+z":
+			if m.focus == FocusTable {
+				m.app.UndoDelete()
+				m.app.UpdateCurrentList(m.NoteSelector)
+				m.updateTable(m.NoteSelector)
+			}
+
 		case "backspace":
 			switch m.focus {
 			case FocusTable:

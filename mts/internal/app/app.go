@@ -2,7 +2,6 @@ package app
 
 import (
 	"log"
-	"slices"
 	"sort"
 	"strings"
 	"sync"
@@ -163,155 +162,6 @@ func (a *App) SelectCurrentNote(cursor int) {
 	a.currentNote = (*a.CurrentNotesListPtr)[cursor]
 }
 
-//is the mutex really required ? Well, maybe making current note public is a good idea, this is just stupid.
-
-// CurrentNoteContent returns the content of the current note
-func (a *App) CurrentNoteContent() string {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
-	if a.currentNote == nil {
-		return ""
-	}
-	return a.currentNote.Content
-}
-
-// CurrentNoteTopics returns the topics of the current note
-func (a *App) CurrentNoteTopics() []*models.Topic {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
-	if a.currentNote == nil {
-		return nil
-	}
-	return a.currentNote.Topics
-}
-
-// CurrentNoteTopics returns the topics of the current note
-func (a *App) CurrentNoteID() int {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
-	if a.currentNote == nil {
-		return -1
-	}
-	return int(a.currentNote.ID)
-}
-
-func (a *App) CurrentNoteLastUpdate() time.Time {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
-	if a.currentNote == nil {
-		return time.Time{}
-	}
-	return a.currentNote.UpdatedAt
-}
-
-func (a *App) CurrentNoteFrequency() int {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
-	if a.currentNote == nil {
-		return 0
-	}
-	return a.currentNote.Frequency
-}
-
-// HasCurrentNote checks if a note is currently selected
-func (a *App) HasCurrentNote() bool {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
-	return a.currentNote != nil
-}
-
-// Update the content of current note, content fetched from terminal
-func (a *App) SaveCurrentNote(content string) {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
-	if a.currentNote == nil {
-		return
-	}
-	var noteID uint
-	if a.currentNote.ID != 0 {
-		noteID = a.currentNote.ID
-	}
-	if a.currentNote.Content != content {
-		a.currentNote.Content = content
-		a.currentNote.Frequency += 1
-		a.Synced = false
-		a.PendingNoteIDs = append(a.PendingNoteIDs, noteID)
-	}
-
-}
-
-func (a *App) HighlightCurrentNote() {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
-	if a.HasCurrentNote() {
-		a.currentNote.Highlight = !a.currentNote.Highlight
-	}
-}
-
-// AddTopicsToCurrentNote adds topics to the current note
-func (a *App) AddTopicsToCurrentNote(topicsText string) {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
-	if a.currentNote == nil {
-		return
-	}
-
-	topicsText = strings.ToLower(strings.TrimSpace(topicsText))
-	if topicsText == "" {
-		return
-	}
-	topicNames := strings.Split(topicsText, ",")
-	for _, topicName := range topicNames {
-		topicName = strings.TrimSpace(topicName)
-		if topicName == "" {
-			continue
-		}
-		topic := &models.Topic{Topic: topicName}
-		exists := false
-		for _, existing := range a.currentNote.Topics {
-			if existing.Topic == topic.Topic {
-				exists = true
-				break
-			}
-		}
-
-		if !exists {
-			a.currentNote.Topics = append(a.currentNote.Topics, topic)
-		}
-
-	}
-	//mark as pending
-	a.Synced = false
-
-	a.PendingNoteIDs = append(a.PendingNoteIDs, a.currentNote.ID)
-	// a.notes[noteID] = *a.currentNote
-	// a.FilteredNotes[noteID] = *a.currentNote
-}
-
-// RemoveTopicFromCurrentNote removes a topic from the current note
-func (a *App) RemoveTopicFromCurrentNote(topicToRemove string) {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
-	if a.currentNote == nil {
-		return
-	}
-	var noteID uint
-	if a.currentNote.ID != 0 {
-		noteID = a.currentNote.ID
-	}
-
-	var newTopics []*models.Topic
-	for _, topic := range a.currentNote.Topics {
-		if topic.Topic != topicToRemove {
-			newTopics = append(newTopics, topic)
-		}
-	}
-	a.currentNote.Topics = newTopics
-	a.Synced = false
-
-	a.PendingNoteIDs = append(a.PendingNoteIDs, noteID)
-}
-
 // CreateNewNote creates a new pending note
 func (a *App) CreateNewNote() {
 	a.mutex.Lock()
@@ -323,76 +173,13 @@ func (a *App) CreateNewNote() {
 	a.nextNoteCreateID += 1
 	a.Synced = false
 	a.CreateNoteIDs = append(a.CreateNoteIDs, note.ID)
-	// a.FilteredNotesMap[note.ID] = note
+	// // a.FilteredNotesMap[note.ID] = note
 	a.NotesMap[note.ID] = note
-	// a.FilteredNotesList = append(a.FilteredNotesList, note)
+	// // a.FilteredNotesList = append(a.FilteredNotesList, note)
 	a.NotesList = append(a.NotesList, note)
 	*a.CurrentNotesListPtr = append(*a.CurrentNotesListPtr, note)
 	a.currentNote = note
 
-}
-
-// DeleteCurrentNote deletes the current note in-memory
-func (a *App) DeleteCurrentNote(cursor uint) {
-	a.mutex.Lock()
-	defer a.mutex.Unlock()
-
-	// Check if there's a current note
-	if a.currentNote == nil {
-		return
-	}
-
-	// Get the note ID
-	noteID := a.currentNote.ID
-
-	// Handle differently based on note status
-	isInCreateList := slices.Contains(a.CreateNoteIDs, noteID)
-
-	if isInCreateList {
-		for i, id := range a.CreateNoteIDs {
-			if id == noteID {
-				a.CreateNoteIDs = append(a.CreateNoteIDs[:i], a.CreateNoteIDs[i+1:]...)
-				//Remove it from the FilteredNotesList and Notes List
-				break
-			}
-		}
-	} else if noteID != 0 {
-		a.DeletedNoteIDs = append(a.DeletedNoteIDs, noteID)
-		// Also remove from pending if it was pending
-		// for i, id := range a.PendingNoteIDs {
-		// 	if id == noteID {
-		// 		a.PendingNoteIDs = append(a.PendingNoteIDs[:i], a.PendingNoteIDs[i+1:]...)
-		// 		break
-		// 	}
-		// }
-	}
-
-	// // Remove from NotesMap
-	// delete(a.NotesMap, noteID)
-
-	// // Remove from NotesList
-	// for i, note := range a.NotesList {
-	// 	if note.ID == noteID {
-	// 		a.NotesList = append(a.NotesList[:i], a.NotesList[i+1:]...)
-	// 		break
-	// 	}
-	// }
-
-	// delete(*a.CurrentNotesListPtr, noteID)
-	for i, note := range *a.CurrentNotesListPtr {
-		if note.ID == noteID {
-			*a.CurrentNotesListPtr = append((*a.CurrentNotesListPtr)[:i], (*a.CurrentNotesListPtr)[i+1:]...)
-			break
-		}
-	}
-	a.Synced = false
-
-	// Clear the current note reference
-	// This might need debugging and border conditions management;
-	if cursor >= uint(len(*a.CurrentNotesListPtr)) {
-		cursor = uint(len(*a.CurrentNotesListPtr) - 1)
-	}
-	a.currentNote = (*a.CurrentNotesListPtr)[cursor]
 }
 
 func (a *App) UpdateRecentNotes() {
@@ -418,9 +205,35 @@ func (a *App) UpdateCurrentList(s types.Selector) {
 	case types.Recent:
 		a.CurrentNotesListPtr = &a.RecentNotes
 	}
+	sort.Slice(*a.CurrentNotesListPtr, func(i, j int) bool {
+		return (*a.CurrentNotesListPtr)[i].ID < (*a.CurrentNotesListPtr)[j].ID
+	})
 }
 
 // SyncWithDatabase syncs in-memory changes to the database
+// This only work before we sync everything.
+
+// This is very buggy.
+func (a *App) UndoDelete() {
+	if len(a.DeletedNoteIDs) == 0 {
+		return
+	}
+
+	lastDeletedID := a.DeletedNoteIDs[len(a.DeletedNoteIDs)-1]
+
+	deletedNote, exists := a.NotesMap[lastDeletedID]
+	if !exists {
+		return
+	}
+
+	a.DeletedNoteIDs = a.DeletedNoteIDs[:len(a.DeletedNoteIDs)-1]
+
+	a.NotesList = append(a.NotesList, deletedNote)
+
+	if len(a.RecentNotes) < 10 {
+		a.RecentNotes = append(a.RecentNotes, deletedNote)
+	}
+}
 
 func (a *App) SyncWithDatabase() {
 	a.mutex.Lock()
