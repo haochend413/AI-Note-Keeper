@@ -1,0 +1,27 @@
+{
+  "name": "ntkpr-tui",
+  "version": "1.0.0",
+  "type": "module",
+  "bin": "dist/index.js",
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsx src/index.tsx",
+    "start": "node dist/index.js"
+  },
+  "dependencies": {
+    "better-sqlite3": "^11.1.2",
+    "chalk": "^5.3.0",
+    "diff-match-patch": "^1.0.5",
+    "ink": "^5.2.1",
+    "ink-text-input": "^6.0.0",
+    "react": "^18.3.1",
+    "yaml": "^2.4.5"
+  },
+  "devDependencies": {
+    "@types/better-sqlite3": "^7.6.11",
+    "@types/diff-match-patch": "^1.0.36",
+    "@types/react": "^18.3.1",
+    "tsx": "^4.15.7",
+    "typescript": "^5.4.5"
+  }
+}
