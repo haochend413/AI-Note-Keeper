@@ -75,4 +75,5 @@ func init() {
 	rootCmd.AddCommand(ExportNoteCmd)
 	rootCmd.AddCommand(LaunchGUICmd)
 	rootCmd.AddCommand(DataBackupCmd)
+	rootCmd.AddCommand(RelatedNotesCmd)
 }

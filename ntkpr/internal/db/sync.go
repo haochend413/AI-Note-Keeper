@@ -11,6 +11,8 @@ import (
 	"gorm.io/gorm"
 )
 
+
+
 // SyncData takes in local stored data and edit record, sync with database and return the latest synced data.
 func (d *DB) SyncData(
 	threads []*models.Thread,
@@ -182,7 +184,21 @@ func (d *DB) persistNote(note *models.Note, isCreate bool) error {
 	}
 
 	// Handle branch associations
-	return d.Conn.Model(note).Association("Branches").Replace(note.Branches)
+	if err := d.Conn.Model(note).Association("Branches").Replace(note.Branches); err != nil {
+		return err
+	}
+
+	if d.EmbedClient != nil && strings.TrimSpace(note.Content) != "" {
+		embedding, err := d.EmbedClient.Embed(note.Content)
+		if err != nil {
+			return err
+		}
+		if err := d.UpsertNoteEmbedding(note.ID, embedding); err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
 func (d *DB) deleteNotes(ids []uint) error {

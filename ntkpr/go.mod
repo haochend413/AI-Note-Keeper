@@ -17,6 +17,7 @@ require (
 // require github.com/charmbracelet/bubbletea v1.3.10
 
 require (
+	github.com/asg017/sqlite-vec-go-bindings v0.1.6 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20260422141423-a0f1f21775f7 // indirect
 	github.com/charmbracelet/x/ansi v0.11.7 // indirect
