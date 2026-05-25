@@ -45,9 +45,9 @@ require (
 // replace github.com/haochend413/bubbles => ../../bubbles //For development.
 // replace github.com/charmbracelet/lipgloss => ../../lipgloss //For development.
 
-// replace github.com/charmbracelet/lipgloss v1.1.0 => github.com/haochend413/lipgloss/v2 v0.3.0
-// replace github.com/haochend413/bubbles v0.2.1 => github.com/haochend413/bubbles/v2 v0.3.0
+replace github.com/charmbracelet/lipgloss v1.1.0 => github.com/haochend413/lipgloss/v2 v0.3.0
+replace github.com/haochend413/bubbles v0.2.1 => github.com/haochend413/bubbles/v2 v0.3.0
 
-replace github.com/haochend413/bubbles/v2 => ../../bubbles //For development.
+// replace github.com/haochend413/bubbles/v2 => ../../bubbles //For development.
 
-replace github.com/haochend413/lipgloss/v2 => ../../lipgloss //For development.
+// replace github.com/haochend413/lipgloss/v2 => ../../lipgloss //For development.
