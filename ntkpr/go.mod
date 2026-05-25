@@ -4,8 +4,9 @@ go 1.25.0
 
 require (
 	charm.land/bubbletea/v2 v2.0.6
+	github.com/asg017/sqlite-vec-go-bindings v0.1.6
 	github.com/atotto/clipboard v0.1.4
-	github.com/haochend413/bubbles/v2 v2.102.0
+	github.com/haochend413/bubbles/v2 v2.103.0
 	github.com/haochend413/lipgloss/v2 v2.100.0
 	github.com/sergi/go-diff v1.4.0
 	github.com/spf13/cobra v1.10.2
@@ -17,7 +18,6 @@ require (
 // require github.com/charmbracelet/bubbletea v1.3.10
 
 require (
-	github.com/asg017/sqlite-vec-go-bindings v0.1.6 // indirect
 	github.com/charmbracelet/colorprofile v0.4.3 // indirect
 	github.com/charmbracelet/ultraviolet v0.0.0-20260422141423-a0f1f21775f7 // indirect
 	github.com/charmbracelet/x/ansi v0.11.7 // indirect
@@ -46,7 +46,8 @@ require (
 // replace github.com/charmbracelet/lipgloss => ../../lipgloss //For development.
 
 replace github.com/charmbracelet/lipgloss v1.1.0 => github.com/haochend413/lipgloss/v2 v2.100.0
-replace github.com/haochend413/bubbles v0.2.1 => github.com/haochend413/bubbles/v2 v2.102.0
+
+replace github.com/haochend413/bubbles v0.2.1 => github.com/haochend413/bubbles/v2 v2.103.0
 
 // replace github.com/haochend413/bubbles/v2 => ../../bubbles //For development.
 
