@@ -12,6 +12,7 @@ import (
 	// "github.com/haochend413/bubbles/table"
 	"github.com/haochend413/bubbles/v2/table"
 	"github.com/haochend413/ntkpr/internal/models"
+	"github.com/haochend413/ntkpr/internal/ui/styles"
 	"github.com/haochend413/ntkpr/sys"
 	// "github.com/haochend413/bubbles/key"
 	// "github.com/haochend413/bubbles/table"
@@ -95,6 +96,11 @@ type SaveItemMsg struct {
 	Updated bool
 }
 
+func (m Model) updateActionStatus(message string) {
+	m.statusBar.GetTag("Action").SetValue(message)
+	m.updateStatusBar()
+}
+
 // Update handles UI events and updates the model
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	var cmd tea.Cmd
@@ -148,130 +154,54 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		m.width = msg.Width
 		m.height = msg.Height
 		m.ready = true
-		m.statusBar.SetWidth(m.width)
+		layout := styles.ComputeLayout(m.width, m.height)
+		m.statusBar.SetWidth(layout.WindowWidth)
 
-		borderOverhead := 8
-		availableWidth := m.width - borderOverhead
+		m.threadsTable.SetColumns(layout.ThreadColumns)
+		m.threadsTable.SetWidth(layout.TableWidth)
+		m.branchesTable.SetColumns(layout.BranchColumns)
+		m.branchesTable.SetWidth(layout.TableWidth)
+		m.notesTable.SetColumns(layout.NoteColumns)
+		m.notesTable.SetWidth(layout.TableWidth)
+		m.recentTable.SetColumns(layout.RecentColumns)
+		m.recentTable.SetWidth(layout.RecentTableWidth)
+		m.diffView.SetWidth(layout.DiffWidth)
 
-		// Split: 35% for tables (left), 60% for edit (right)
-		tableContentWidth := int(float64(availableWidth) * 0.35)
-		editContentWidth := availableWidth - tableContentWidth
+		m.recentTable.SetHeight(layout.RecentDiffContentHeight)
+		m.diffView.SetHeight(layout.RecentDiffContentHeight)
 
-		tableWidth := tableContentWidth
-		editWidth := editContentWidth
+		m.textArea.SetWidth(layout.EditorWidth)
+		m.textArea.SetHeight(layout.TextAreaHeight)
 
-		// Distribute column widths for tables
-		idWidth := max(4, int(float64(tableWidth)*0.08))
-		timeWidth := max(8, int(float64(tableWidth)*0.22))
-		flagWidth := max(4, int(float64(tableWidth)*0.15))
-		CountWidth := max(4, int(float64(tableWidth)*0.07))
-		nameWidth := max(10, int(float64(tableWidth)*0.51))
-		contentWidth := max(10, int(float64(tableWidth)*0.58))
+		m.changeTable.SetColumns(layout.ChangeColumns)
+		m.changeTable.SetWidth(layout.EditorWidth)
+		m.changeTable.SetHeight(layout.ChangeTableHeight)
 
-		// Separate column definitions for threads, branches (Name), and notes (Content)
-		threadColumns := []table.Column{
-			{Title: "ID", Width: idWidth},
-			{Title: "Time", Width: timeWidth},
-			{Title: "Name", Width: nameWidth},
-			{Title: "#Bs", Width: CountWidth},
-			{Title: "Flags", Width: flagWidth},
-		}
-
-		branchColumns := []table.Column{
-			{Title: "ID", Width: idWidth},
-			{Title: "Time", Width: timeWidth},
-			{Title: "Name", Width: nameWidth},
-			{Title: "#Ns", Width: CountWidth},
-			{Title: "Flags", Width: flagWidth},
-		}
-
-		noteColumns := []table.Column{
-			{Title: "ID", Width: idWidth},
-			{Title: "Time", Width: timeWidth},
-			{Title: "Content", Width: contentWidth},
-			{Title: "Flags", Width: flagWidth},
-		}
-
-		recentColumns := []table.Column{
-			{Title: "Thread", Width: max(20, int(float64(m.width)*0.13))},
-			{Title: "Branch", Width: max(20, int(float64(m.width)*0.10))},
-			{Title: "Note", Width: max(20, int(float64(m.width)*0.25))},
-			{Title: "Flags", Width: max(8, int(float64(m.width)*0.06))},
-		}
-
-		// Calculate recent table width as sum of its columns
-		recentTableWidth := max(20, int(float64(m.width)*0.13)) +
-			max(20, int(float64(m.width)*0.10)) +
-			max(20, int(float64(m.width)*0.25)) +
-			max(8, int(float64(m.width)*0.06))
-
-		// Set columns and width for each table with appropriate column types
-		m.threadsTable.SetColumns(threadColumns)
-		m.threadsTable.SetWidth(tableWidth)
-		m.branchesTable.SetColumns(branchColumns)
-		m.branchesTable.SetWidth(tableWidth)
-		m.notesTable.SetColumns(noteColumns)
-		m.notesTable.SetWidth(tableWidth)
-		m.recentTable.SetColumns(recentColumns)
-		m.recentTable.SetWidth(recentTableWidth)
-		m.diffView.SetWidth(recentTableWidth / 2)
-
-		// Height calculations
-		mainContentHeight := m.height - 5 // Reserve for help + status bar
-
-		// Each table gets 1/3 of the left side height
-		tableHeight := max(3, (mainContentHeight-3)/10) // -6 for borders/margins
-		standard_thread_height := tableHeight + 2 - 3
-		standard_branch_height := tableHeight + 2 - 3
-		standard_notes_height := tableHeight*8 + 4 - 3
-		m.threadsTable.SetHeight(standard_thread_height + 6)
-		m.branchesTable.SetHeight(standard_branch_height)
-		m.notesTable.SetHeight(standard_notes_height + 2)
-		m.recentTable.SetHeight(standard_notes_height)
-		m.diffView.SetHeight(standard_notes_height)
-
-		// Textarea takes most of right side
-		m.textArea.SetWidth(editWidth)
-		textareaHeight := max(5, int(float64(mainContentHeight)*1)) - 1
-		m.textArea.SetHeight(textareaHeight)
-
-		// Changelog table (below textarea)
-		changeColumns := []table.Column{
-			{Title: "Type", Width: max(6, int(float64(editWidth)*0.10))},
-			{Title: "ID", Width: max(4, int(float64(editWidth)*0.10))},
-			{Title: "Time", Width: max(12, int(float64(editWidth)*0.25))},
-			{Title: "Description", Width: max(15, int(float64(editWidth)*0.40))},
-		}
-		m.changeTable.SetColumns(changeColumns)
-		m.changeTable.SetWidth(editWidth)
-		changeTableHeight := max(5, int(float64(mainContentHeight)*0.3)) - 3
-		m.changeTable.SetHeight(changeTableHeight)
+		m.applyTableHeightsForFocus(layout, m.focus)
 
 	case tea.KeyMsg:
 		// update statusbar
-		m.statusBar.GetTag("Action").SetValue("Keypress: " + msg.String())
+		m.updateActionStatus("Keypress: " + msg.String())
 		// Handle global keys first
 		switch m.viewMode {
 		case ApplicationView:
 			switch {
 			case key.Matches(msg, globalKeys.QuitApp):
+				m.updateActionStatus("Open quit confirmation")
 				m.viewMode = QuitConfirmView
 				// m.app.SyncWithDatabase()
 				// return m, tea.Quit
 				return m, nil
 
 			case key.Matches(msg, globalKeys.SyncWithDB):
-				m.statusBar.GetTag("Action").SetValue("Started Syncing ...")
-				m.updateStatusBar()
+				m.updateActionStatus("Started syncing...")
 				m.app.SyncWithDatabase()
-				m.statusBar.GetTag("Action").SetValue("Updating UI ...")
-				m.updateStatusBar()
+				m.updateActionStatus("Updating UI...")
 				m.updateThreadsTable()
 				m.updateBranchesTable()
 				m.updateNotesTable()
 				m.updateChangelogTable()
-				m.statusBar.GetTag("Action").SetValue("Synced with database!")
-				m.updateStatusBar()
+				m.updateActionStatus("Synced with database")
 				return m, nil
 
 			case key.Matches(msg, globalKeys.SwitchFocusWindow):
@@ -293,6 +223,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case FocusThreads:
 				switch {
 				case key.Matches(msg, tableKeys.Select):
+					m.updateActionStatus("Thread selected!")
 					cursor := m.threadsTable.Cursor()
 					m.switchToThreadAtCursor(cursor)
 					m.updateBranchesTable()
@@ -303,6 +234,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 
 				case key.Matches(msg, tableKeys.CreateNew):
+					m.updateActionStatus("Thread created!")
 					m.app.CreateNewThread(nil)
 					m.updateThreadsTable()
 					lastIdx := len(m.app.GetThreadList()) - 1
@@ -319,6 +251,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 
 				case key.Matches(msg, tableKeys.Delete):
+					m.updateActionStatus("Thread deleted!")
 					m.app.DeleteCurrentThread(nil)
 					m.updateThreadsTable()
 					m.updateBranchesTable()
@@ -354,14 +287,17 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 
 				case key.Matches(msg, tableKeys.GoToEdit):
+					m.updateActionStatus("Edit thread")
 					m.EnterEdit(FocusThreads)
 					return m, nil
 
 				case key.Matches(msg, tableKeys.DownTable):
+					m.updateActionStatus("Focus branches")
 					m.SetFocus(FocusBranches)
 					return m, nil
 
 				case key.Matches(msg, tableKeys.ViewRecent):
+					m.updateActionStatus("Open recent edits")
 					m.SetFocus(FocusRecent)
 					return m, nil
 				}
@@ -369,6 +305,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case FocusBranches:
 				switch {
 				case key.Matches(msg, tableKeys.Select):
+					m.updateActionStatus("Select branch")
 					cursor := m.branchesTable.Cursor()
 					m.switchToBranchAtCursor(cursor)
 					m.updateNotesTable()
@@ -377,10 +314,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 
 				case key.Matches(msg, tableKeys.Back):
+					m.updateActionStatus("Back to threads")
 					m.SetFocus(FocusThreads)
 					return m, nil
 
 				case key.Matches(msg, tableKeys.CreateNew):
+					m.updateActionStatus("Create branch")
 					m.app.CreateNewBranch(nil)
 					m.updateBranchesTable()
 					lastIdx := len(m.app.GetActiveBranchList()) - 1
@@ -395,6 +334,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 
 				case key.Matches(msg, tableKeys.Delete):
+					m.updateActionStatus("Delete branch")
 					m.app.DeleteCurrentBranch(nil)
 					m.updateBranchesTable()
 					m.updateNotesTable()
@@ -429,18 +369,22 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 
 				case key.Matches(msg, tableKeys.GoToEdit):
+					m.updateActionStatus("Edit branch")
 					m.EnterEdit(FocusBranches)
 					return m, nil
 
 				case key.Matches(msg, tableKeys.UpTable):
+					m.updateActionStatus("Focus threads")
 					m.SetFocus(FocusThreads)
 					return m, nil
 
 				case key.Matches(msg, tableKeys.DownTable):
+					m.updateActionStatus("Focus notes")
 					m.SetFocus(FocusNotes)
 					return m, nil
 
 				case key.Matches(msg, tableKeys.ViewRecent):
+					m.updateActionStatus("Open recent edits")
 					m.SetFocus(FocusRecent)
 					return m, nil
 				}
@@ -448,6 +392,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case FocusNotes:
 				switch {
 				case key.Matches(msg, tableKeys.Select):
+					m.updateActionStatus("Edit note")
 					cursor := m.notesTable.Cursor()
 					m.switchToNoteAtCursor(cursor)
 					m.EnterEdit(FocusNotes)
@@ -455,10 +400,12 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 
 				case key.Matches(msg, tableKeys.Back):
+					m.updateActionStatus("Back to branches")
 					m.SetFocus(FocusBranches)
 					return m, nil
 
 				case key.Matches(msg, tableKeys.CreateNew):
+					m.updateActionStatus("Create note")
 
 					m.app.CreateNewNote(nil) // let's not track create for now.
 					m.updateNotesTable()
@@ -473,6 +420,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 
 				case key.Matches(msg, tableKeys.Delete):
+					m.updateActionStatus("Delete note")
 					m.app.DeleteCurrentNote(nil) // also not delete
 					m.updateNotesTable()
 					threadRows := m.threadsTable.Rows()
@@ -506,31 +454,37 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					return m, nil
 
 				case key.Matches(msg, tableKeys.Highlight):
+					m.updateActionStatus("Toggle note highlight")
 					m.app.ToggleCurrentNoteHighlight(&curr_spl)
 					m.updateNotesTable()
 					return m, nil
 
 				case key.Matches(msg, tableKeys.Privatize):
+					m.updateActionStatus("Toggle note privacy")
 					m.app.ToggleCurrentNotePrivate(&curr_spl)
 					m.updateNotesTable()
 					return m, nil
 
 				case key.Matches(msg, tableKeys.GoToEdit):
+					m.updateActionStatus("Edit note")
 					cursor := m.notesTable.Cursor()
 					m.switchToNoteAtCursor(cursor)
 					m.EnterEdit(FocusNotes)
 					return m, nil
 
 				case key.Matches(msg, tableKeys.ViewChangelog):
+					m.updateActionStatus("Open changelog")
 					m.updateChangelogTable()
 					m.SetFocus(FocusChangelog)
 					return m, nil
 
 				case key.Matches(msg, tableKeys.UpTable):
+					m.updateActionStatus("Focus branches")
 					m.SetFocus(FocusBranches)
 					return m, nil
 
 				case key.Matches(msg, tableKeys.ViewRecent):
+					m.updateActionStatus("Open recent edits")
 					m.SetFocus(FocusRecent)
 					noteEdits := m.app.GetNoteEditStack()
 					cursor := m.recentTable.Cursor()
@@ -548,6 +502,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case FocusRecent:
 				switch {
 				case key.Matches(msg, tableKeys.Select):
+					m.updateActionStatus("Jump to selected recent note")
 					noteEdits := m.app.GetNoteEditStack()
 					cursor := m.recentTable.Cursor()
 					if cursor < 0 || cursor >= len(noteEdits) {
@@ -573,13 +528,16 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 					m.SetFocus(FocusNotes)
 					return m, nil
 				case key.Matches(msg, tableKeys.ViewRecent):
+					m.updateActionStatus("Close recent edits")
 					// Toggle back to Notes when R is pressed again
 					m.SetFocus(FocusNotes)
 					return m, nil
 				case key.Matches(msg, tableKeys.Back):
+					m.updateActionStatus("Close recent edits")
 					m.SetFocus(FocusNotes)
 					return m, nil
 				case key.Matches(msg, recentKeys.GotoDiff):
+					m.updateActionStatus("Focus diff viewer")
 					m.SetFocus(FocusDiff)
 					return m, nil
 				}
@@ -587,6 +545,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case FocusDiff:
 				switch {
 				case key.Matches(msg, tableKeys.ViewRecent):
+					m.updateActionStatus("Back to recent list")
 					m.SetFocus(FocusRecent)
 					return m, nil
 				}
@@ -594,6 +553,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case FocusChangelog:
 				switch {
 				case key.Matches(msg, tableKeys.Back):
+					m.updateActionStatus("Close changelog")
 					m.SetFocus(FocusNotes)
 					return m, nil
 				}
@@ -601,14 +561,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case FocusEdit:
 				switch {
 				case key.Matches(msg, editKeys.SaveAndReturn):
+					m.updateActionStatus("Save and exit edit")
 					cmd1 := m.ExitEdit(true, curr_spl)
 					return m, cmd1
 
 				case key.Matches(msg, editKeys.Cancel):
+					m.updateActionStatus("Cancel edit")
 					cmd1 := m.ExitEdit(false, curr_spl)
 					return m, cmd1
 				case key.Matches(msg, editKeys.CopyNote):
+					m.updateActionStatus("Copied note to clipboard")
 					// send copy ?
+
 					_ = clipboard.WriteAll(m.textArea.Value())
 					return m, nil
 				}
@@ -616,9 +580,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case QuitConfirmView:
 			switch {
 			case key.Matches(msg, globalKeys.ConfirmQuit):
+				m.updateActionStatus("Syncing before quit")
 				m.app.SyncWithDatabase()
 				return m, tea.Quit
 			case key.Matches(msg, globalKeys.RejectQuit):
+				m.updateActionStatus("Canceled quit")
 				// put m viewmode back
 				m.viewMode = ApplicationView
 				return m, nil
@@ -668,6 +634,7 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 
 			// fetch noteID
 			m.updateDiffArea(noteEdit.Link)
+			// m.diffView.GotoBottom()
 
 		}
 	}
@@ -711,36 +678,45 @@ func (m *Model) SetFocus(focus FocusState) {
 	// This should add animation for size shifting.
 	m.blurAllTables()
 	m.focus = focus
-	tableHeight := max(3, (m.height-5-3)/10)
-	standard_thread_height := tableHeight + 2 - 3
-	standard_branch_height := tableHeight + 2 - 3
-	standard_notes_height := tableHeight*8 + 4 - 3
+	layout := styles.ComputeLayout(m.width, m.height)
+	m.applyTableHeightsForFocus(layout, focus)
 
 	switch focus {
 	case FocusThreads:
 		m.threadsTable.Focus()
 		m.textArea.SetValue(m.app.GetCurrentThreadSummary())
-		m.threadsTable.SetHeight(standard_thread_height + 6)
-		m.branchesTable.SetHeight(standard_branch_height)
-		m.notesTable.SetHeight(standard_notes_height + 2)
 	case FocusBranches:
 		m.branchesTable.Focus()
 		m.textArea.SetValue(m.app.GetCurrentBranchSummary())
-		m.threadsTable.SetHeight(standard_thread_height)
-		m.branchesTable.SetHeight(standard_branch_height + 6)
-		m.notesTable.SetHeight(standard_notes_height + 2)
 	case FocusNotes:
 		m.notesTable.Focus()
 		m.textArea.SetValue(m.app.GetCurrentNoteContent())
-		m.threadsTable.SetHeight(standard_thread_height + 2)
-		m.branchesTable.SetHeight(standard_branch_height)
-		m.notesTable.SetHeight(standard_notes_height + 6)
 	case FocusChangelog:
 		m.changeTable.Focus()
 	case FocusRecent:
 		m.recentTable.Focus()
 	}
 	m.updateStatusBar()
+}
+
+func (m *Model) applyTableHeightsForFocus(layout styles.Layout, focus FocusState) {
+	m.recentTable.SetHeight(layout.RecentDiffContentHeight)
+	m.diffView.SetHeight(layout.RecentDiffContentHeight)
+
+	switch focus {
+	case FocusThreads:
+		m.threadsTable.SetHeight(styles.ThreadFocusedHeight(layout))
+		m.branchesTable.SetHeight(layout.BranchBaseHeight)
+		m.notesTable.SetHeight(styles.NotesNormalHeight(layout))
+	case FocusBranches:
+		m.threadsTable.SetHeight(layout.ThreadBaseHeight)
+		m.branchesTable.SetHeight(styles.BranchFocusedHeight(layout))
+		m.notesTable.SetHeight(styles.NotesNormalHeight(layout))
+	case FocusNotes:
+		m.threadsTable.SetHeight(styles.ThreadSemiFocusedHeight(layout))
+		m.branchesTable.SetHeight(layout.BranchBaseHeight)
+		m.notesTable.SetHeight(styles.NotesFocusedHeight(layout))
+	}
 }
 
 // EnterEdit switches to edit mode from a given focus, sets previousFocus, populates textarea, and focuses textarea

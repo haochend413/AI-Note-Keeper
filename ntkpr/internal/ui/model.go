@@ -220,6 +220,7 @@ func NewModel(application *app.App, cfg *config.Config, s *state.State) Model {
 	diffView.SetWidth(50)
 	diffView.SetHeight(10)
 	diffView.SoftWrap = true
+	// diffView.GotoBottom()
 	// This needs further improving.
 	changeColumns := []table.Column{
 		{Title: "ID", Width: 4},
@@ -460,6 +461,7 @@ func (m *Model) updateDiffArea(link models.Superlink) {
 		return
 	}
 	m.diffView.SetContent(note.Diff)
+	m.diffView.GotoBottom()
 }
 
 func (m *Model) updateRecentTable() {

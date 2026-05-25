@@ -24,8 +24,10 @@ func (m Model) appView() tea.View {
 		return v
 	}
 
+	layout := styles.ComputeLayout(m.width, m.height)
+
 	// Main content height
-	mainContentHeight := m.height - 3 // Reserve 3 lines for help + status bar
+	mainContentHeight := layout.ViewMainContentHeight
 
 	// Render left side: always show all three tables. When editing, render the previously
 	// focused table with the OnEdit style and the others with Base style.
@@ -131,6 +133,11 @@ func (m Model) appView() tea.View {
 		// Recent overlay content: recent table + diff area side by side
 		recentTableBox := m.renderRecentTableBox()
 		diffTextAreaBox := m.renderdiffArea()
+		// Keep both overlay panes the same fixed height so wrapped diff content
+		// cannot change panel size relative to the recent table.
+		overlayPaneHeight := layout.RecentDiffBoxHeight
+		recentTableBox = lipgloss.PlaceVertical(overlayPaneHeight, lipgloss.Top, recentTableBox)
+		diffTextAreaBox = lipgloss.PlaceVertical(overlayPaneHeight, lipgloss.Top, diffTextAreaBox)
 		overlayContent := lipgloss.JoinHorizontal(lipgloss.Top, recentTableBox, diffTextAreaBox)
 
 		recentLayer := lipgloss.NewLayer(overlayContent).
