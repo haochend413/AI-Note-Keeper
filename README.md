@@ -1,113 +1,131 @@
 # ntkpr
 
 ![Demo](assets/screenshot.png)
-(Screenshot for ntkpr v0.3)
-
-## Important Notices
-
-A straight forward way to install and use this app is cloning this repo, then go to /ntkpr/scripts folder. build.sh will build the executable, and add_to_path.sh will add it to system path. You might wanna configure the shell commands a bit to fit it to your computer.
 
 ## Introduction
 
-`ntkpr` is a terminal journal management tool that provides TUI interface for note taking and design (more to come) for journal management.
+`ntkpr` is a terminal journal management tool with a TUI interface for structured note-taking. Notes are organized in a three-level hierarchy inspired by version control: **Thread → Branch → Note**.
 
-I enjoy writing down plans, thoughts and ideas during daily work and life, and I also like the general style of terminal applications. `ntkpr` is an attempt to digitalize and automate the whole workflow, from which I hope to explore different patterns of journal taking and managing.
+- **Threads** are top-level topics or projects.
+- **Branches** subdivide a thread into separate tracks or phases.
+- **Notes** are the individual entries within a branch.
 
-## Development
+Each thread and branch has a summary/description page. Changes are kept in memory and synced to a local SQLite database on demand — no auto-save.
 
-- Stable version: v0.2.0. Simple, 1-layer note managing.
-- developing: v0.3.0. Thread-Branch-Note version-control style structure, more advanced UI.
+The tool also ships a semantic search pipeline: notes are embedded via a local embedding server and stored in a `sqlite-vec` vector table, enabling `ntkpr related <note-id>` to retrieve the most semantically similar notes.
 
-## Installation Guide
+## Installation
 
-Currently `ntkpr` runs on Linux and macOS.
+`ntkpr` runs on macOS, Linux, and Windows (via WSL).
 
-Prereq: Go. 
+**Prerequisite:** Go.
 
 ### macOS
 
 ```bash
-cd ~
-curl -L https://github.com/haochend413/ntkpr/releases/latest/download/ntkpr_darwin_arm64 \
-  -o ntkpr
-
-chmod +x ntkpr
-sudo mv ntkpr /usr/local/bin/
+curl -L https://github.com/haochend413/ntkpr/releases/latest/download/ntkpr_darwin_arm64 -o ntkpr
+chmod +x ntkpr && sudo mv ntkpr /usr/local/bin/
 ```
 
 ### Linux
 
 ```bash
-cd ~
-curl -L https://github.com/haochend413/ntkpr/releases/latest/download/ntkpr_linux_amd64 \
-  -o ntkpr
-
-chmod +x ntkpr
-sudo mv ntkpr /usr/local/bin/
+curl -L https://github.com/haochend413/ntkpr/releases/latest/download/ntkpr_linux_amd64 -o ntkpr
+chmod +x ntkpr && sudo mv ntkpr /usr/local/bin/
 ```
-
-### Windows
-
-Windows is currently not supported. You can run `ntkpr` on WSL if you're using Windows.
 
 ### Local Build
 
-You can also clone the git repo and build it locally with `go build -o ntkpr`. This will allow you to try the locally hosted GUI interface and the LLM agent. This should work on any OS.
+```bash
+git clone https://github.com/haochend413/ntkpr
+cd ntkpr/ntkpr
+go build -o ntkpr .
+```
+
+Scripts in `/scripts/` can automate the build and add the binary to your path.
+
+## Usage
+
+```bash
+ntkpr                              # launch the TUI
+ntkpr backup [path]                # backup config, state, and database (default: cwd)
+ntkpr export                       # export notes to JSON
+ntkpr related <note-id>            # print a note and its top 5 semantically related notes
+ntkpr related <note-id> --reset-reembed  # rebuild the vector table and re-embed all notes first
+ntkpr gui                          # launch the web GUI (requires Node.js / pnpm)
+```
 
 ## Keymaps
 
-### Global Keymaps
+### Global
 
-- `Ctrl+c`: quit the application.
-- `Tab`: switch focusing window.
-- `Ctrl+q`: sync with database and flush the caches.
+| Key | Action |
+|-----|--------|
+| `Tab` | Cycle focus: Threads → Branches → Notes → Threads |
+| `Ctrl+C` | Quit (opens confirmation) |
+| `Ctrl+Q` | Sync in-memory changes to database |
+| `H` | Toggle help |
 
-### Table Keymaps
+### Tables (Threads / Branches / Notes)
 
-- `n`: create new note.
-- `Ctrl+d`: delete current note.
-- `Ctrl+z`: undo last deletion.
-- `Ctrl+h`: highlight current note.
-- `Ctrl+p`: make current note private (invisible on GUI).
-- `A`: switch to Default context.
-- `R`: switch to Recent context.
-- `S`: open up search bar.
-- `enter/Tab`: go to text area.
+| Key | Action |
+|-----|--------|
+| `j` / `k` | Move cursor down / up |
+| `Enter` | Select / drill into item |
+| `Esc` | Go back to parent table |
+| `h` / `←` | Move focus to the table above |
+| `l` / `→` | Move focus to the table below |
+| `n` / `Ctrl+N` | Create new item |
+| `e` / `Ctrl+E` | Open item in editor |
+| `Ctrl+D` | Delete current item |
+| `Ctrl+H` | Toggle highlight |
+| `Ctrl+P` | Toggle private |
+| `R` | Open recent edits overlay |
+| `Ctrl+L` | View changelog |
 
-### Textarea Keymaps
+### Editor
 
-- `Ctrl+s`: save current note content.
-- Other shortcuts included by default.
+| Key | Action |
+|-----|--------|
+| `Ctrl+S` | Save current content |
+| `Esc` | Exit editor (saves automatically) |
+| Arrow keys | Move cursor |
+| `Home` / `End` | Line start / end |
+| `Alt+←` / `Alt+→` | Word backward / forward |
+| `Ctrl+K` | Delete to end of line |
+| `Ctrl+U` | Delete to start of line |
 
-## Commands
+### Recent Edits Overlay
+
+| Key | Action |
+|-----|--------|
+| `j` / `k` | Navigate entries |
+| `Enter` | Open diff view for selected entry |
+| `R` / `Esc` | Close overlay |
+
+## Semantic Search
+
+`ntkpr` embeds note content using a local embedding server (default: `http://127.0.0.1:8000`) and stores vectors in a `sqlite-vec` virtual table. Embeddings are generated automatically when notes are synced.
 
 ```bash
-ntkpr # launch TUI
+# Find notes related to note #42
+ntkpr related 42
+
+# Rebuild the entire vector index from scratch
+ntkpr related 42 --reset-reembed
 ```
 
-### GUI commands
+The embedding server must expose a `POST /embed` endpoint that accepts `{"text": "..."}` and returns `{"embedding": [...]}` with a 1024-dimensional float32 vector.
 
-These now only works if you clone the git repo and build/run it locally.
+## Data Storage
 
-```bash
-ntkpr gui # launch GUI
-```
+| Platform | Path |
+|----------|------|
+| macOS | `~/Library/Application Support/ntkpr/` |
+| Linux | `~/.local/state/ntkpr/` |
+| Windows | `%APPDATA%\ntkpr\` |
 
-```bash
-ntkpr export # sync GUI data with database
-```
-
-### Data commands
-
-```bash
-ntkpr backup [path/to/backup/folder] # backup the config, state and your database to a folder. Default to cwd.
-```
-
-## Program Config
-
-Program configs are stored by default in:
-
-```bash
-"~/Library/Application Support/ntkpr/" # macOS
-"~/.local/state/ntkpr/" # Linux
-```
+Inside that directory:
+- `config.yaml` — program configuration
+- `state.json` — UI state (cursor positions, scroll offsets)
+- `db/notes_dev.db` — SQLite database (notes, branches, threads, vector embeddings)
