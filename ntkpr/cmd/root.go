@@ -8,6 +8,7 @@ import (
 	tea "charm.land/bubbletea/v2"
 	"github.com/haochend413/ntkpr/config"
 	"github.com/haochend413/ntkpr/internal/app"
+	"github.com/haochend413/ntkpr/internal/clients"
 	"github.com/haochend413/ntkpr/internal/db"
 	"github.com/haochend413/ntkpr/internal/ui"
 	"github.com/haochend413/ntkpr/state"
@@ -18,6 +19,7 @@ var globalCfg *config.Config
 var globalDB *db.DB
 var globalApp *app.App
 var globalModel *ui.Model
+var globalEmbedClient *clients.EmbedClient
 
 var rootCmd = &cobra.Command{
 	Use:   "ntkpr",
@@ -28,9 +30,11 @@ var rootCmd = &cobra.Command{
 		cfg := config.LoadOrCreateConfig()
 		globalCfg = &cfg
 
-		// Initialize database
+		// Initialize embedder and database
+		globalEmbedClient = clients.NewEmbedClient("http://127.0.0.1:8000")
+
 		var err error
-		globalDB, err = db.NewDB(cfg.DataFilePath + "/notes_dev.db") // TODO: change this back in official version!
+		globalDB, err = db.NewDB(cfg.DataFilePath+"/notes_dev.db", globalEmbedClient) // TODO: change this back in official version!
 		if err != nil {
 			log.Fatal("Failed to connect to database:", err)
 		}
@@ -44,7 +48,7 @@ var rootCmd = &cobra.Command{
 		}
 
 		// Initialize application with AppState
-		globalApp = app.NewApp(globalDB, &s.App)
+		globalApp = app.NewApp(globalDB, &s.App, globalEmbedClient)
 
 		// Initialize UI model with full state
 		model := ui.NewModel(globalApp, globalCfg, s)

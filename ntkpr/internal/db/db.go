@@ -7,7 +7,7 @@ import (
 	"path/filepath"
 
 	sqlite_vec "github.com/asg017/sqlite-vec-go-bindings/cgo"
-	"github.com/haochend413/ntkpr/internal/embed"
+	"github.com/haochend413/ntkpr/internal/clients"
 	"github.com/haochend413/ntkpr/internal/models"
 	"gorm.io/driver/sqlite"
 	"gorm.io/gorm"
@@ -16,11 +16,11 @@ import (
 // DB wraps the GORM database connection
 type DB struct {
 	Conn        *gorm.DB
-	EmbedClient *embed.Client
+	EmbedClient *clients.EmbedClient
 }
 
 // NewDB initializes a new database connection and migrates schema
-func NewDB(path string) (*DB, error) {
+func NewDB(path string, embedClient *clients.EmbedClient) (*DB, error) {
 	sqlite_vec.Auto()
 
 	// if not exist, create all dirs
@@ -47,7 +47,7 @@ func NewDB(path string) (*DB, error) {
 
 	database := &DB{
 		Conn:        conn,
-		EmbedClient: embed.NewClient("http://127.0.0.1:8000"),
+		EmbedClient: embedClient,
 	}
 
 	if err := database.InitVectorTable(); err != nil {

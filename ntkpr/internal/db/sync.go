@@ -4,11 +4,13 @@ package db
 // For starters, I think, maybe threads, branches and notes are redundant ?
 import (
 	"fmt"
+	"log"
 	"strings"
 
 	editstack "github.com/haochend413/ntkpr/internal/app/editStack"
 	"github.com/haochend413/ntkpr/internal/models"
 	"gorm.io/gorm"
+	"gorm.io/gorm/clause"
 )
 
 
@@ -175,7 +177,7 @@ func (d *DB) persistNote(note *models.Note, isCreate bool) error {
 	// Topics removed: only persist note and its branch associations
 	var result *gorm.DB
 	if isCreate {
-		result = d.Conn.Omit("Branches").Create(note)
+		result = d.Conn.Omit("Branches").Clauses(clause.OnConflict{UpdateAll: true}).Create(note)
 	} else {
 		result = d.Conn.Save(note)
 	}
@@ -191,10 +193,11 @@ func (d *DB) persistNote(note *models.Note, isCreate bool) error {
 	if d.EmbedClient != nil && strings.TrimSpace(note.Content) != "" {
 		embedding, err := d.EmbedClient.Embed(note.Content)
 		if err != nil {
-			return err
+			log.Printf("embedding skipped for note %d: %v", note.ID, err)
+			return nil
 		}
 		if err := d.UpsertNoteEmbedding(note.ID, embedding); err != nil {
-			return err
+			log.Printf("upsert embedding skipped for note %d: %v", note.ID, err)
 		}
 	}
 

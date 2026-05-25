@@ -11,7 +11,7 @@ import (
 )
 
 func resetAndReembedAllNotes() error {
-	if globalDB.EmbedClient == nil {
+	if globalEmbedClient == nil {
 		return fmt.Errorf("no embedding client configured")
 	}
 
@@ -48,7 +48,7 @@ CREATE VIRTUAL TABLE note_vecs USING vec0(
 			continue
 		}
 
-		vec, err := globalDB.EmbedClient.Embed(content)
+		vec, err := globalEmbedClient.Embed(content)
 		if err != nil {
 			return fmt.Errorf("embed failed for note %d: %w", note.ID, err)
 		}
@@ -100,15 +100,21 @@ var RelatedNotesCmd = &cobra.Command{
 			return
 		}
 
-		if globalDB.EmbedClient == nil {
-			fmt.Fprintln(os.Stderr, "No embedding client configured")
+		embedding, err := globalDB.GetNoteEmbedding(note.ID)
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "Failed to fetch cached embedding: %v\n", err)
 			os.Exit(1)
 		}
-
-		embedding, err := globalDB.EmbedClient.Embed(note.Content)
-		if err != nil {
-			fmt.Fprintf(os.Stderr, "Embedding failed: %v\n", err)
-			os.Exit(1)
+		if embedding == nil {
+			if globalEmbedClient == nil {
+				fmt.Fprintln(os.Stderr, "No cached embedding and no embedding client configured")
+				os.Exit(1)
+			}
+			embedding, err = globalEmbedClient.Embed(note.Content)
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Embedding failed: %v\n", err)
+				os.Exit(1)
+			}
 		}
 
 		results, err := globalDB.SearchRelatedNotes(embedding, 6)
@@ -119,11 +125,11 @@ var RelatedNotesCmd = &cobra.Command{
 
 		printed := 0
 		for _, r := range results {
-			if r.Note.ID == note.ID {
+			if r.ID == note.ID {
 				continue
 			}
 			printed++
-			fmt.Printf("\n--- Related #%d (distance %.4f) ---\n%s\n", r.Note.ID, r.Distance, r.Note.Content)
+			fmt.Printf("\n--- Related #%d (distance %.4f) ---\n%s\n", r.ID, 1, r.Content)
 			if printed == 5 {
 				break
 			}

@@ -7,6 +7,8 @@ import (
 
 	"github.com/haochend413/ntkpr/internal/app/data"
 	editstack "github.com/haochend413/ntkpr/internal/app/editStack"
+	"github.com/haochend413/ntkpr/internal/app/embedder"
+	"github.com/haochend413/ntkpr/internal/clients"
 	"github.com/haochend413/ntkpr/internal/db"
 	"github.com/haochend413/ntkpr/internal/models"
 	"github.com/haochend413/ntkpr/state"
@@ -19,6 +21,7 @@ type App struct {
 	db                 *db.DB
 	dataMgr            *data.DataMgr
 	editMgr            *editstack.EditMgr
+	embedder           *embedder.Embedder
 	nextThreadCreateID uint
 	nextBranchCreateID uint
 	nextNoteCreateID   uint
@@ -27,12 +30,13 @@ type App struct {
 }
 
 // NewApp creates a new application instance and restore app states
-func NewApp(dbConn *db.DB, AppState *state.AppState) *App {
-
+func NewApp(dbConn *db.DB, AppState *state.AppState, embedClient *clients.EmbedClient) *App {
+	embedder := embedder.NewEmbedder(embedClient, dbConn)
 	app := &App{
 		db:                 dbConn,
 		dataMgr:            &data.DataMgr{},
 		editMgr:            editstack.NewEditMgr(),
+		embedder:           embedder,
 		nextThreadCreateID: 1,
 		nextBranchCreateID: 1,
 		nextNoteCreateID:   1,

@@ -2,8 +2,11 @@ package db
 
 import (
 	"database/sql"
+	"encoding/binary"
 	"encoding/json"
+	"errors"
 	"fmt"
+	"math"
 
 	"github.com/haochend413/ntkpr/internal/models"
 )
@@ -53,15 +56,42 @@ func (d *DB) UpsertNoteEmbedding(noteID uint, embedding []float32) error {
 		return err
 	}
 
-	_, err = sqlDB.Exec(`
-INSERT OR REPLACE INTO note_vecs(rowid, embedding)
-VALUES (?, ?)
-`, noteID, string(b))
-
+	if _, err = sqlDB.Exec(`DELETE FROM note_vecs WHERE rowid = ?`, noteID); err != nil {
+		return err
+	}
+	_, err = sqlDB.Exec(`INSERT INTO note_vecs(rowid, embedding) VALUES (?, ?)`, noteID, string(b))
 	return err
 }
 
-func (d *DB) SearchRelatedNotes(queryEmbedding []float32, k int) ([]RelatedNote, error) {
+// GetNoteEmbedding fetches the stored embedding for a note. Returns nil with no error if the note
+// has no embedding yet (not yet synced to the vector table).
+func (d *DB) GetNoteEmbedding(noteID uint) ([]float32, error) {
+	sqlDB, err := d.rawDB()
+	if err != nil {
+		return nil, err
+	}
+
+	var blob []byte
+	err = sqlDB.QueryRow(`SELECT embedding FROM note_vecs WHERE rowid = ?`, noteID).Scan(&blob)
+	if errors.Is(err, sql.ErrNoRows) {
+		return nil, nil
+	}
+	if err != nil {
+		return nil, err
+	}
+
+	if len(blob)%4 != 0 {
+		return nil, fmt.Errorf("unexpected embedding blob length: %d bytes", len(blob))
+	}
+	embedding := make([]float32, len(blob)/4)
+	for i := range embedding {
+		bits := binary.LittleEndian.Uint32(blob[i*4 : i*4+4])
+		embedding[i] = math.Float32frombits(bits)
+	}
+	return embedding, nil
+}
+
+func (d *DB) SearchRelatedNotes(queryEmbedding []float32, k int) ([]models.Note, error) {
 	if len(queryEmbedding) != EmbeddingDim {
 		return nil, fmt.Errorf("embedding dim mismatch: got %d, want %d", len(queryEmbedding), EmbeddingDim)
 	}
@@ -88,7 +118,7 @@ LIMIT ?
 	}
 	defer rows.Close()
 
-	var results []RelatedNote
+	var results []models.Note
 
 	for rows.Next() {
 		var noteID uint
@@ -103,10 +133,7 @@ LIMIT ?
 			return nil, err
 		}
 
-		results = append(results, RelatedNote{
-			Note:     note,
-			Distance: distance,
-		})
+		results = append(results, note)
 	}
 
 	return results, rows.Err()

@@ -1,4 +1,4 @@
-package embed
+package clients
 
 import (
 	"bytes"
@@ -7,15 +7,15 @@ import (
 	"net/http"
 )
 
-type Client struct {
+type EmbedClient struct {
 	BaseURL string
 }
 
-func NewClient(baseURL string) *Client {
-	return &Client{BaseURL: baseURL}
+func NewEmbedClient(baseURL string) *EmbedClient {
+	return &EmbedClient{BaseURL: baseURL}
 }
 
-func (c *Client) Embed(text string) ([]float32, error) {
+func (c *EmbedClient) Embed(text string) ([]float32, error) {
 	body, _ := json.Marshal(map[string]string{
 		"text": text,
 	})
