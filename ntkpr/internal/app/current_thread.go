@@ -328,6 +328,18 @@ func (a *App) DeleteCurrentThread(link *models.Superlink) {
 
 	threadID := thread.ID
 
+	// Clean up pending CreateBranch/CreateNote edits for entities inside this thread
+	for _, branch := range thread.Branches {
+		if branchEdit, branchExists := a.editMgr.GetEdit(editstack.EntityBranch, branch.ID); branchExists && branchEdit.EditType == editstack.CreateBranch {
+			a.editMgr.RemoveEdit(editstack.EntityBranch, branch.ID)
+		}
+		for _, note := range branch.Notes {
+			if noteEdit, noteExists := a.editMgr.GetEdit(editstack.EntityNote, note.ID); noteExists && noteEdit.EditType == editstack.CreateNote {
+				a.editMgr.RemoveEdit(editstack.EntityNote, note.ID)
+			}
+		}
+	}
+
 	// Determine if thread was just created or exists in DB
 	edit, exists := a.editMgr.GetEdit(editstack.EntityThread, threadID)
 

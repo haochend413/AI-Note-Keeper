@@ -1,6 +1,7 @@
 package db
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -19,7 +20,7 @@ type DB struct {
 func NewDB(path string) (*DB, error) {
 	// if not exist, create all dirs
 	_, err := os.ReadFile(path)
-	if os.IsNotExist(err) {
+	if errors.Is(err, os.ErrNotExist) {
 		// Config file doesn't exist, create directory and config file with defaults
 		dir := filepath.Dir(path)
 		if err := os.MkdirAll(dir, 0755); err != nil {
@@ -29,7 +30,7 @@ func NewDB(path string) (*DB, error) {
 
 	}
 
-	conn, err := gorm.Open(sqlite.Open(path), &gorm.Config{})
+	conn, err := gorm.Open(sqlite.Open(path+"?_journal_mode=WAL&_busy_timeout=5000"), &gorm.Config{})
 	if err != nil {
 		return nil, err
 	}

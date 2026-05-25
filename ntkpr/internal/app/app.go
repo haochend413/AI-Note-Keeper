@@ -79,9 +79,10 @@ func (a *App) loadData() {
 	a.dataMgr = data.NewDataMgr(threads)
 
 	// Set the next IDs for creation
-	a.nextNoteCreateID = a.db.GetCreateNoteID()
-	a.nextBranchCreateID = a.db.GetCreateBranchID()
-	a.nextThreadCreateID = a.db.GetCreateThreadID()
+	nextIDs := a.db.GetNextCreateIDs()
+	a.nextNoteCreateID = nextIDs.NoteID
+	a.nextBranchCreateID = nextIDs.BranchID
+	a.nextThreadCreateID = nextIDs.ThreadID
 }
 
 /*
@@ -250,6 +251,11 @@ func (a *App) SyncWithDatabase() {
 		editMapCopy[k] = v
 	}
 
+	// Capture active IDs before SyncData rewrites the data manager
+	threadID := a.dataMgr.GetActiveThreadID()
+	branchID := a.dataMgr.GetActiveBranchID()
+	noteID := a.dataMgr.GetActiveNoteID()
+
 	// Sync with the database
 	updatedThreads, err := a.db.SyncData(threads, editMapCopy)
 
@@ -258,18 +264,14 @@ func (a *App) SyncWithDatabase() {
 		return
 	}
 
-	threadID := a.dataMgr.GetActiveThreadID()
-	branchID := a.dataMgr.GetActiveBranchID()
-	noteID := a.dataMgr.GetActiveNoteID()
-
 	// Refresh data manager with updated threads
 	a.dataMgr.RefreshDataByID(updatedThreads, &threadID, &branchID, &noteID)
 
 	// Get next IDs from database (includes soft-deleted records)
-	// This ensures we never reuse an ID that exists in the DB
-	a.nextNoteCreateID = a.db.GetCreateNoteID()
-	a.nextBranchCreateID = a.db.GetCreateBranchID()
-	a.nextThreadCreateID = a.db.GetCreateThreadID()
+	nextIDs := a.db.GetNextCreateIDs()
+	a.nextNoteCreateID = nextIDs.NoteID
+	a.nextBranchCreateID = nextIDs.BranchID
+	a.nextThreadCreateID = nextIDs.ThreadID
 	a.editMgr.ClearOnSync()
 	a.Synced = true
 }

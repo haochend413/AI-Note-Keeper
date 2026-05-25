@@ -1,19 +1,43 @@
 package ui
 
 import (
+	"github.com/haochend413/ntkpr/internal/app/context"
 	"github.com/haochend413/ntkpr/state"
 )
 
-// Distribute state in json on startup
-func (m *Model) DistributeState(s *state.UIState) {
-	// TODO: Implement state restoration for new three-table layout
-	// This needs to be redesigned for the new hierarchy navigation
+// DistributeState restores cursor positions from saved state on startup.
+func (m *Model) DistributeState(s *state.AppState) {
+	if s == nil {
+		return
+	}
+	if tc, ok := s.ThreadCursors[context.Default]; ok {
+		if int(tc) < len(m.threadsTable.Rows()) {
+			m.threadsTable.SetCursor(int(tc))
+			m.switchToThreadAtCursor(int(tc))
+			m.updateBranchesTable()
+		}
+	}
+	if bc, ok := s.BranchCursors[context.Default]; ok {
+		if int(bc) < len(m.branchesTable.Rows()) {
+			m.branchesTable.SetCursor(int(bc))
+			m.switchToBranchAtCursor(int(bc))
+			m.updateNotesTable()
+		}
+	}
+	if nc, ok := s.NoteCursors[context.Default]; ok {
+		if int(nc) < len(m.notesTable.Rows()) {
+			m.notesTable.SetCursor(int(nc))
+			m.switchToNoteAtCursor(int(nc))
+		}
+	}
 }
 
-// Collect end state on termination
+// CollectState gathers current cursor positions for persistence on quit.
 func (m Model) CollectState() *state.State {
-	s := &state.State{}
-	// TODO: Implement state collection for new three-table layout
+	s := state.DefaultState()
+	s.App.ThreadCursors[context.Default] = uint(m.threadsTable.Cursor())
+	s.App.BranchCursors[context.Default] = uint(m.branchesTable.Cursor())
+	s.App.NoteCursors[context.Default] = uint(m.notesTable.Cursor())
 	return s
 }
 

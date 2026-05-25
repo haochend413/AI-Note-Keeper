@@ -12,7 +12,7 @@ import (
 
 // define modular view functions
 func (m Model) quitConfirmView() tea.View {
-	v := tea.NewView("You sure you wanna quit ntkpr? This will reset recent table since this feature is not yet supported.\nTo quit, type y.\nTo go back, type n or esc.")
+	v := tea.NewView("You sure you wanna quit ntkpr? Unsaved changes will be synced to the database.\nTo quit, type y.\nTo go back, type n or esc.")
 	v.AltScreen = true
 	return v
 }

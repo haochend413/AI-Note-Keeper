@@ -15,6 +15,9 @@ import (
 func (d *DB) SyncData(
 	threads []*models.Thread,
 	editMap map[editstack.EditKey]*editstack.Edit) ([]*models.Thread, error) {
+	if len(editMap) == 0 {
+		return d.loadAll()
+	}
 	// Categorize edits from the editMap
 	noteCreateIDs := make([]uint, 0)
 	notePendingIDs := make([]uint, 0)

@@ -62,22 +62,21 @@ var LaunchGUICmd = &cobra.Command{
 		}
 
 		guiDir, err := filepath.Abs("../gui")
-
-		cmd1 := exec.Command("pnpm", "install")
-		cmd1.Dir = guiDir
-		if err := cmd1.Run(); err != nil {
-			fmt.Fprintf(os.Stderr, "Error installing pnpm packages %v\n", err)
-			return
-		}
-		cmd1.Stdout = os.Stdout
-		cmd1.Stderr = os.Stderr
-
-		cmd2 := exec.Command("pnpm", "dev")
 		if err != nil {
 			fmt.Fprintf(os.Stderr, "Error resolving gui path: %v\n", err)
 			return
 		}
-		// set working directory
+
+		cmd1 := exec.Command("pnpm", "install")
+		cmd1.Dir = guiDir
+		cmd1.Stdout = os.Stdout
+		cmd1.Stderr = os.Stderr
+		if err := cmd1.Run(); err != nil {
+			fmt.Fprintf(os.Stderr, "Error installing pnpm packages: %v\n", err)
+			return
+		}
+
+		cmd2 := exec.Command("pnpm", "dev")
 		cmd2.Dir = guiDir
 		cmd2.Stdout = os.Stdout
 		cmd2.Stderr = os.Stderr

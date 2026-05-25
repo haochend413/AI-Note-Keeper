@@ -1,6 +1,7 @@
 package ui
 
 import (
+	"log"
 	"time"
 
 	"github.com/atotto/clipboard"
@@ -13,6 +14,7 @@ import (
 	"github.com/haochend413/bubbles/v2/table"
 	"github.com/haochend413/ntkpr/internal/models"
 	"github.com/haochend413/ntkpr/internal/ui/styles"
+	"github.com/haochend413/ntkpr/state"
 	"github.com/haochend413/ntkpr/sys"
 	// "github.com/haochend413/bubbles/key"
 	// "github.com/haochend413/bubbles/table"
@@ -205,15 +207,18 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 				return m, nil
 
 			case key.Matches(msg, globalKeys.SwitchFocusWindow):
-				// Tab cycles through three tables only: Threads -> Branches -> Notes -> Threads
-				// Edit and Changelog can only be accessed via specific keys (e/ctrl+e and ctrl+l)
+				// Tab cycles through the three main tables: Threads -> Branches -> Notes -> Threads
 				if m.focus == FocusEdit {
 					cmd1 := m.ExitEdit(true, curr_spl)
 					return m, cmd1
 				}
-				if m.focus == FocusChangelog {
-					// If in changelog, tab does nothing
-					return m, nil
+				switch m.focus {
+				case FocusThreads:
+					m.SetFocus(FocusBranches)
+				case FocusBranches:
+					m.SetFocus(FocusNotes)
+				case FocusNotes, FocusChangelog, FocusRecent, FocusDiff:
+					m.SetFocus(FocusThreads)
 				}
 				return m, nil
 			}
@@ -582,6 +587,11 @@ func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			case key.Matches(msg, globalKeys.ConfirmQuit):
 				m.updateActionStatus("Syncing before quit")
 				m.app.SyncWithDatabase()
+				if s := m.CollectState(); s != nil {
+					if err := state.SaveState(m.Config.StateFilePath, s); err != nil {
+						log.Printf("Error saving state: %v", err)
+					}
+				}
 				return m, tea.Quit
 			case key.Matches(msg, globalKeys.RejectQuit):
 				m.updateActionStatus("Canceled quit")

@@ -24,17 +24,24 @@ type DataMgr struct {
 	threadIndexByID map[uint]int
 	branchIndexByID map[uint]int
 	noteIndexByID   map[uint]int
+	// Global maps for O(1) lookup across all threads/branches
+	globalThreadByID map[uint]*models.Thread
+	globalBranchByID map[uint]*models.Branch
+	globalNoteByID   map[uint]*models.Note
 }
 
 func NewDataMgr(threads []*models.Thread) *DataMgr {
 	dm := &DataMgr{
-		threads:         threads,
-		activeThreadPtr: 0,
-		activeBranchPtr: 0,
-		activeNotePtr:   0,
-		threadIndexByID: make(map[uint]int),
-		branchIndexByID: make(map[uint]int),
-		noteIndexByID:   make(map[uint]int),
+		threads:          threads,
+		activeThreadPtr:  0,
+		activeBranchPtr:  0,
+		activeNotePtr:    0,
+		threadIndexByID:  make(map[uint]int),
+		branchIndexByID:  make(map[uint]int),
+		noteIndexByID:    make(map[uint]int),
+		globalThreadByID: make(map[uint]*models.Thread),
+		globalBranchByID: make(map[uint]*models.Branch),
+		globalNoteByID:   make(map[uint]*models.Note),
 	}
 
 	dm.rebuildThreadIndex()
@@ -69,12 +76,15 @@ func NewDataMgr(threads []*models.Thread) *DataMgr {
 
 func (dm *DataMgr) NewDataMgr() *DataMgr {
 	return &DataMgr{
-		threads:         []*models.Thread{},
-		branches:        []*models.Branch{},
-		notes:           []*models.Note{},
-		threadIndexByID: make(map[uint]int),
-		branchIndexByID: make(map[uint]int),
-		noteIndexByID:   make(map[uint]int),
+		threads:          []*models.Thread{},
+		branches:         []*models.Branch{},
+		notes:            []*models.Note{},
+		threadIndexByID:  make(map[uint]int),
+		branchIndexByID:  make(map[uint]int),
+		noteIndexByID:    make(map[uint]int),
+		globalThreadByID: make(map[uint]*models.Thread),
+		globalBranchByID: make(map[uint]*models.Branch),
+		globalNoteByID:   make(map[uint]*models.Note),
 	}
 }
 
@@ -82,6 +92,26 @@ func (dm *DataMgr) rebuildThreadIndex() {
 	dm.threadIndexByID = make(map[uint]int, len(dm.threads))
 	for i, t := range dm.threads {
 		dm.threadIndexByID[t.ID] = i
+	}
+	dm.rebuildGlobalMaps()
+}
+
+func (dm *DataMgr) rebuildGlobalMaps() {
+	dm.globalThreadByID = make(map[uint]*models.Thread, len(dm.threads))
+	totalBranches := 0
+	for _, t := range dm.threads {
+		totalBranches += len(t.Branches)
+	}
+	dm.globalBranchByID = make(map[uint]*models.Branch, totalBranches)
+	dm.globalNoteByID = make(map[uint]*models.Note)
+	for _, t := range dm.threads {
+		dm.globalThreadByID[t.ID] = t
+		for _, b := range t.Branches {
+			dm.globalBranchByID[b.ID] = b
+			for _, n := range b.Notes {
+				dm.globalNoteByID[n.ID] = n
+			}
+		}
 	}
 }
 
@@ -413,7 +443,8 @@ func (dm *DataMgr) AddThread(t *models.Thread) {
 		return
 	}
 	dm.threads = append(dm.threads, t)
-	dm.rebuildThreadIndex()
+	dm.threadIndexByID[t.ID] = len(dm.threads) - 1
+	dm.globalThreadByID[t.ID] = t
 }
 
 // RemoveThread removes a thread at the given index and adjusts active pointers.
@@ -422,8 +453,18 @@ func (dm *DataMgr) RemoveThread(index int) {
 		return
 	}
 
-	removedID := dm.threads[index].ID
+	removedThread := dm.threads[index]
+	removedID := removedThread.ID
 	prevThreadID := dm.activeThreadID
+
+	// Remove from global maps
+	delete(dm.globalThreadByID, removedID)
+	for _, b := range removedThread.Branches {
+		delete(dm.globalBranchByID, b.ID)
+		for _, n := range b.Notes {
+			delete(dm.globalNoteByID, n.ID)
+		}
+	}
 
 	dm.threads = append(dm.threads[:index], dm.threads[index+1:]...)
 	dm.rebuildThreadIndex()
@@ -454,7 +495,8 @@ func (dm *DataMgr) AddBranch(b *models.Branch) {
 	thread := dm.threads[dm.activeThreadPtr]
 	thread.Branches = append(thread.Branches, b)
 	dm.branches = thread.Branches
-	dm.rebuildBranchIndex()
+	dm.branchIndexByID[b.ID] = len(dm.branches) - 1
+	dm.globalBranchByID[b.ID] = b
 }
 
 // RemoveBranch removes a branch at the given index from the current thread and adjusts active pointers.
@@ -463,8 +505,15 @@ func (dm *DataMgr) RemoveBranch(index int) {
 		return
 	}
 
-	removedID := dm.branches[index].ID
+	removedBranch := dm.branches[index]
+	removedID := removedBranch.ID
 	prevBranchID := dm.activeBranchID
+
+	// Remove from global maps
+	delete(dm.globalBranchByID, removedID)
+	for _, n := range removedBranch.Notes {
+		delete(dm.globalNoteByID, n.ID)
+	}
 
 	thread := dm.threads[dm.activeThreadPtr]
 	thread.Branches = append(thread.Branches[:index], thread.Branches[index+1:]...)
@@ -500,7 +549,8 @@ func (dm *DataMgr) AddNote(n *models.Note) {
 	branch := dm.branches[dm.activeBranchPtr]
 	branch.Notes = append(branch.Notes, n)
 	dm.notes = branch.Notes
-	dm.rebuildNoteIndex()
+	dm.noteIndexByID[n.ID] = len(dm.notes) - 1
+	dm.globalNoteByID[n.ID] = n
 }
 
 // RemoveNote removes a note at the given index from the current branch and adjusts active pointers.
@@ -511,6 +561,9 @@ func (dm *DataMgr) RemoveNote(index int) {
 
 	removedID := dm.notes[index].ID
 	prevNoteID := dm.activeNoteID
+
+	// Remove from global map
+	delete(dm.globalNoteByID, removedID)
 
 	branch := dm.branches[dm.activeBranchPtr]
 	branch.Notes = append(branch.Notes[:index], branch.Notes[index+1:]...)
@@ -533,66 +586,25 @@ func (dm *DataMgr) RemoveNote(index int) {
 	dm.SwitchActiveNote(index)
 }
 
-// FindThreadByID finds a thread by ID across all threads
+// FindThreadByID finds a thread by ID across all threads in O(1).
 func (dm *DataMgr) FindThreadByID(id uint) *models.Thread {
-	for _, t := range dm.threads {
-		if t.ID == id {
-			return t
-		}
-	}
-	return nil
+	return dm.globalThreadByID[id]
 }
 
-// FindBranchByID finds a branch by ID across all threads
+// FindBranchByID finds a branch by ID across all threads in O(1).
 func (dm *DataMgr) FindBranchByID(id uint) *models.Branch {
-	for _, t := range dm.threads {
-		for _, b := range t.Branches {
-			if b.ID == id {
-				return b
-			}
-		}
-	}
-	return nil
+	return dm.globalBranchByID[id]
 }
 
-// FindNoteByID finds a note by ID across all threads and branches
+// FindNoteByID finds a note by ID across all threads and branches in O(1).
 func (dm *DataMgr) FindNoteByID(id uint) *models.Note {
-	for _, t := range dm.threads {
-		for _, b := range t.Branches {
-			for _, n := range b.Notes {
-				if n.ID == id {
-					return n
-				}
-			}
-		}
-	}
-	return nil
+	return dm.globalNoteByID[id]
 }
 
-// find through superlink
+// FindNoteByLink finds a note by superlink in O(1).
 func (dm *DataMgr) FindNoteByLink(link models.Superlink) *models.Note {
-	if link.ThreadID <= 0 || link.BranchID <= 0 || link.NoteID <= 0 {
+	if link.NoteID <= 0 {
 		return nil
 	}
-
-	thread := dm.FindThreadByID(uint(link.ThreadID))
-	if thread == nil {
-		return nil
-	}
-
-	for _, branch := range thread.Branches {
-		if branch.ID != uint(link.BranchID) {
-			continue
-		}
-
-		for _, note := range branch.Notes {
-			if note.ID == uint(link.NoteID) {
-				return note
-			}
-		}
-
-		return nil
-	}
-
-	return nil
+	return dm.globalNoteByID[uint(link.NoteID)]
 }

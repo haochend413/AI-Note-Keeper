@@ -252,13 +252,12 @@ func NewModel(application *app.App, cfg *config.Config, s *state.State) Model {
 	}
 
 	//set states
-	// m.DistributeState(s)
-	// m.updateTopicsTable()
 	m.updateThreadsTable()
 	m.updateBranchesTable()
 	m.updateNotesTable()
 	m.updateRecentTable()
 	m.updateStatusBar()
+	m.DistributeState(&s.App)
 
 	return m
 }

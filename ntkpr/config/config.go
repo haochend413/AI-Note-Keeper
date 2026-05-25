@@ -1,6 +1,7 @@
 package config
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"path/filepath"
@@ -29,7 +30,7 @@ func LoadOrCreateConfig() Config {
 	path := ConfigPath()
 
 	data, err := os.ReadFile(path)
-	if os.IsNotExist(err) {
+	if errors.Is(err, os.ErrNotExist) {
 		// Config file doesn't exist, create directory and config file with defaults
 		dir := filepath.Dir(path)
 		if err := os.MkdirAll(dir, 0755); err != nil {

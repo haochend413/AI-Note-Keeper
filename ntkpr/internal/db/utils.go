@@ -8,30 +8,22 @@ import (
 	"github.com/haochend413/ntkpr/internal/models"
 )
 
-func (d *DB) GetCreateNoteID() uint {
-	// Query the database for the maximum ID, including deleted notes
-	var maxID uint
-	if err := d.Conn.Table("notes").Select("MAX(id)").Row().Scan(&maxID); err != nil {
-		maxID = 0
-	}
-	return maxID + 1
+type NextCreateIDs struct {
+	NoteID   uint
+	BranchID uint
+	ThreadID uint
 }
 
-func (d *DB) GetCreateBranchID() uint {
-	// Query the database for the maximum ID, including deleted notes
-	var maxID uint
-	if err := d.Conn.Table("branches").Select("MAX(id)").Row().Scan(&maxID); err != nil {
-		maxID = 0
-	}
-	return maxID + 1
-}
-func (d *DB) GetCreateThreadID() uint {
-	// Query the database for the maximum ID, including deleted notes
-	var maxID uint
-	if err := d.Conn.Table("threads").Select("MAX(id)").Row().Scan(&maxID); err != nil {
-		maxID = 0
-	}
-	return maxID + 1
+func (d *DB) GetNextCreateIDs() NextCreateIDs {
+	var ids NextCreateIDs
+	var noteMax, branchMax, threadMax uint
+	d.Conn.Raw("SELECT COALESCE(MAX(id), 0) FROM notes").Scan(&noteMax)
+	d.Conn.Raw("SELECT COALESCE(MAX(id), 0) FROM branches").Scan(&branchMax)
+	d.Conn.Raw("SELECT COALESCE(MAX(id), 0) FROM threads").Scan(&threadMax)
+	ids.NoteID = noteMax + 1
+	ids.BranchID = branchMax + 1
+	ids.ThreadID = threadMax + 1
+	return ids
 }
 
 // export the serialized data into desired position

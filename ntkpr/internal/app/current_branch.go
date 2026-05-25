@@ -327,6 +327,13 @@ func (a *App) DeleteCurrentBranch(link *models.Superlink) {
 
 	branchID := branch.ID
 
+	// Clean up pending CreateNote edits for notes inside this branch
+	for _, note := range branch.Notes {
+		if noteEdit, noteExists := a.editMgr.GetEdit(editstack.EntityNote, note.ID); noteExists && noteEdit.EditType == editstack.CreateNote {
+			a.editMgr.RemoveEdit(editstack.EntityNote, note.ID)
+		}
+	}
+
 	// Determine if branch was just created or exists in DB
 	edit, exists := a.editMgr.GetEdit(editstack.EntityBranch, branchID)
 

@@ -16,8 +16,11 @@ var ExportNoteCmd = &cobra.Command{
 	Short: "export",
 	Long:  "export",
 	Run: func(cmd *cobra.Command, args []string) {
-		//fetch from globaldb
-		globalDB.ExportNoteToJSON(globalCfg.DataFilePath + "/notes.json")
+		if err := globalDB.ExportNoteToJSON(globalCfg.DataFilePath + "/notes.json"); err != nil {
+			fmt.Fprintf(os.Stderr, "Export failed: %v\n", err)
+			os.Exit(1)
+		}
+		fmt.Println("Exported notes to", globalCfg.DataFilePath+"/notes.json")
 	},
 }
 
